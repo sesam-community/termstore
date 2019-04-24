@@ -30,7 +30,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     tokenCache[url] = accessToken;
                 }
 
-                e.WebRequest.Headers.Add("Authorization", "Bearer " + tokenCache[url].access_token);
+                e.WebRequestExecutor.WebRequest.Headers.Add("Authorization", "Bearer " + tokenCache[url].access_token);
             };
 
             return cc;
@@ -46,7 +46,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
             ClientContext cc = new ClientContext(url)
             {
                 AuthenticationMode = ClientAuthenticationMode.Default,
-                Credentials = new SharePointOnlineCredentials(username, password)
+                Credentials = new SharePointOnlineCredentials(username, secure)
             };
 
             return cc;

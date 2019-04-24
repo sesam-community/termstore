@@ -1,0 +1,19 @@
+FROM suchja/wine:latest
+
+WORKDIR /app
+
+EXPOSE 5000/tcp
+
+COPY ./bin/Debug/netcoreapp3.0/publish/ /app
+
+USER root
+
+RUN chmod +x /app/init.sh
+
+ENV WINEDEBUG -all,err+all
+
+USER xclient
+
+ENTRYPOINT ["/app/init.sh"]
+
+

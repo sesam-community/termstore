@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SharePoint.Client;
 using Microsoft.SharePoint.Client.Taxonomy;
@@ -26,8 +28,16 @@ namespace SP_Taxonomy_client_test.Infrastructure
             this.url = this.config["url"];
             this.username = this.config["username"];
             this.password = this.config["password"];
+            try
+            {
+                this.cc = AuthHelper.GetClientContextForUsernameAndPassword(this.config["url"], this.config["username"], this.config["password"]);
+            }
+            catch (NullReferenceException e) {
+                System.Diagnostics.Debug.WriteLine("Exception occuresd whilt obtain client context due to: "+e.Message);
+                throw new ArgumentNullException(e.Message);
+            }
 
-            this.cc = AuthHelper.GetClientContextForUsernameAndPassword(this.config["url"], this.config["username"], this.config["password"]);
+            
         }
 
         /// <summary>

@@ -11,7 +11,12 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0-preview3-19153-02" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.4.10" />
-    <PackageReference Include="TTCUE.NetCore.SharepointOnline.CSOM.16.1.8029.1200" Version="16.1.8029.1200" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="SharePointPnP.Client">
+      <HintPath>SharePointPnP.Client.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
