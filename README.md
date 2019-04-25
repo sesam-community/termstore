@@ -14,6 +14,20 @@ password - password to be used for authenticaiton
 `GET /api/termset` - return JSON array with all terms from default termstore  
 `POST /api/termset` - takes JSON array with terms to be creates on input and creates trems on SharePoint 
 
+Entity shape to POST new terms:
+```json
+[
+    {
+        "termSetId": "<term set id>",
+        "termName": "<term set name>"
+    },
+    {
+        "termSetId": "<term set id>",
+        "termName": "<term set name>"
+    }
+]
+```
+
 ### Build  
 To build docker image run from solution directory `docker build  -f ./SP_Taxonomy_client_test/Dockerfile .`
 
