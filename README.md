@@ -33,3 +33,45 @@ To build docker image run from solution directory `docker build  -f ./SP_Taxonom
 
 To build locally - use Visual Studio >=2019 Preview and .NET Core >= 3.0 Preview 
 
+### Sesam system setup 
+
+```json
+{
+  "_id": "net-core-test",
+  "type": "system:microservice",
+  "docker": {
+    "environment": {
+      "password": "<>",
+      "url": "<>",
+      "username": "<>"
+    },
+    "image": "ohuenno/sp-online-termstore",
+    "port": 80
+  },
+  "verify_ssl": true
+}
+```
+
+### Sesam pipe setup
+
+```json
+{
+  "_id": "test-termstore",
+  "type": "pipe",
+  "source": {
+    "type": "json",
+    "system": "net-core-test",
+    "url": "/api/termset"
+  },
+  "transform": {
+    "type": "dtl",
+    "rules": {
+      "default": [
+        ["copy", "*"],
+        ["add", "_id", "_S.termId"]
+      ]
+    }
+  }
+}
+```
+
