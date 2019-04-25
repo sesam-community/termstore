@@ -1,6 +1,8 @@
-# sp-tem-source
+# sp-term-source
 
-Works with Sharepoint Online, username/password authentication
+Simple service to fetch/create managed metadata (terms) on Sharepoint online
+
+Works with Sharepoint Online - username/password authentication
 
 ### env vars
 url - url for sharepoint tenant
