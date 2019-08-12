@@ -16,10 +16,10 @@ namespace SP_Taxonomy_client_test.Infrastructure
     {
 
         private readonly IConfiguration config;
-        private string url;
-        private string username;
-        private string password;
-        private ClientContext cc;
+        private readonly string url;
+        private readonly string username;
+        private readonly string password;
+        private readonly ClientContext cc;
 
         public SharePointTermsService(IConfiguration config)
         {
@@ -30,18 +30,60 @@ namespace SP_Taxonomy_client_test.Infrastructure
             this.password = this.config["password"];
             try
             {
-                this.cc = AuthHelper.GetClientContextForUsernameAndPassword(this.config["url"], this.config["username"], this.config["password"]);
+                this.cc = AuthHelper.GetClientContextForUsernameAndPassword(url, username, password);
             }
-            catch (NullReferenceException e) {
-                System.Diagnostics.Debug.WriteLine("Exception occuresd whilt obtain client context due to: "+e.Message);
+            catch (NullReferenceException e)
+            {
+                System.Diagnostics.Debug.WriteLine("Exception occuresd whilt obtain client context due to: " + e.Message);
                 throw new ArgumentNullException(e.Message);
             }
 
-            
+
+        }
+
+        public List<TermStoreModel> GetTermStores()
+        {
+            TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(this.cc);
+            List<TermStoreModel> resultList = new List<TermStoreModel>(1);
+
+            this.cc.Load(taxonomySession.TermStores);
+            this.cc.ExecuteQuery();
+
+            foreach (var termStore in taxonomySession.TermStores)
+            {
+                TermStoreModel tempStore = new TermStoreModel
+                {
+                    DefaultLanguage = termStore.DefaultLanguage,
+                    Id = termStore.Id.ToString(),
+                    Name = termStore.Name,
+                    IsOnline = termStore.IsOnline
+                };
+                resultList.Add(tempStore);
+            }
+
+            return resultList;
+        }
+
+        public List<TermGroupModel> GetTermStoreGroups(string id)
+        {
+            TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(this.cc);
+            List<TermGroupModel> resultList = new List<TermGroupModel>(32);
+
+            var termStore = taxonomySession.TermStores.GetById(new Guid(id));
+            this.cc.Load(termStore.Groups);
+            this.cc.ExecuteQuery();
+
+            foreach (var group in termStore.Groups)
+            {
+                Console.WriteLine(group);
+            }
+
+            return resultList;
         }
 
         /// <summary>
         /// Fetch all terms from Sharepoint terms store
+        /// Terms include some info about their TermSet and TermGroup as well as their own info
         /// </summary>
         /// <returns></returns>
         public async Task<ActionResult<IEnumerable<TermModel>>> GetAllTerms()
@@ -62,18 +104,33 @@ namespace SP_Taxonomy_client_test.Infrastructure
                         group => group.Description,
                         group => group.Id,
                         group => group.TermSets.Include(
-                            termSet => termSet.Name,
-                            termSet => termSet.Contact,
-                            termSet => termSet.CreatedDate,
-                            termSet => termSet.Description,
-                            termSet => termSet.Id,
-                            termSet => termSet.IsOpenForTermCreation
+                            set => set.Name,
+                            set => set.Description,
+                            set => set.Id,
+                            set => set.Contact,
+                            set => set.CustomProperties,
+                            set => set.IsAvailableForTagging,
+                            set => set.IsOpenForTermCreation,
+                            set => set.CustomProperties,
+                            set => set.Terms.Include(
+                                term => term.Name,
+                                term => term.Description,
+                                term => term.Id,
+                                term => term.IsAvailableForTagging,
+                                term => term.LocalCustomProperties,
+                                term => term.CustomProperties,
+                                term => term.IsDeprecated,
+                                term => term.Labels.Include(
+                                    label => label.Value,
+                                    label => label.Language,
+                                    label => label.IsDefaultForLanguage))
                         )
                     )
             );
             await this.cc.ExecuteQueryAsync();
 
-            if (taxonomySession == null || termStore == null) {
+            if (taxonomySession == null || termStore == null)
+            {
                 return resultList;
             }
 
@@ -81,19 +138,32 @@ namespace SP_Taxonomy_client_test.Infrastructure
             {
                 foreach (TermSet termSet in group.TermSets)
                 {
-                    var terms = termSet.GetAllTerms();
-                    this.cc.Load(terms);
-                    await this.cc.ExecuteQueryAsync();
+                    var terms = termSet.Terms;
+                    //this.cc.Load(terms);
+                    //await this.cc.ExecuteQueryAsync();
 
-                    foreach (Term term in terms) {
-                        var _term = new TermModel();
-
-                        _term.termGroupName = group.Name;
-                        _term.termSetName = termSet.Name;
-                        _term.termName = term.Name;
-                        _term.termGroupId = group.Id;
-                        _term.termSetId = termSet.Id;
-                        _term.termId = term.Id;
+                    foreach (Term term in terms)
+                    {
+                        var _term = new TermModel
+                        {
+                            termGroupName = group.Name,
+                            termSetName = termSet.Name,
+                            termName = term.Name,
+                            termGroupId = group.Id.ToString(),
+                            termSetId = termSet.Id.ToString(),
+                            termId = term.Id.ToString(),
+                            termDescription = term.Description,
+                            termIsAvailableForTagging = term.IsAvailableForTagging,
+                            termLocalCustomProperties = term.LocalCustomProperties,
+                            termCustomProperties = term.CustomProperties,
+                            termIsDeprecated = term.IsDeprecated,
+                            termLabels = term.Labels.Select(
+                                x => new TermLabel {
+                                    IsDefaultForLanguage = x.IsDefaultForLanguage,
+                                    Language = x.Language,
+                                    Value = x.Value }
+                                ).ToList()
+                        };
 
                         resultList.Add(_term);
                     }
@@ -115,17 +185,53 @@ namespace SP_Taxonomy_client_test.Infrastructure
 
             TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
 
-            foreach (var term in termList) {
-                var termSet = termStore.GetTermSet(term.termSetId);
+            foreach (var term in termList)
+            {
+                var termSet = termStore.GetTermSet(new Guid(term.termSetId));
 
-                cc.Load(termSet);
+                cc.Load(termSet, set => set.Name, set => set.Terms.Include(term => term.Name));
                 await cc.ExecuteQueryAsync();
 
-                var newTerm = termSet.CreateTerm(term.termName, 1033, Guid.NewGuid());
+                if (termSet.Terms.Any(x => x.Name == term.termName))
+                {
+                    var termToUpdate = termSet.Terms.GetById(new Guid(term.termId));
+                    cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                    await cc.ExecuteQueryAsync();
 
-                cc.Load(newTerm);
-                await cc.ExecuteQueryAsync();
-                term.termId = newTerm.Id;
+                    termToUpdate.Name = term.termName;
+                    termToUpdate.SetDescription(term.termDescription, term.termLcid);
+
+                    foreach (var customLocalProperty in term.termLocalCustomProperties) {
+                        termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                    }
+
+                    foreach (var customProperty in term.termCustomProperties) {
+                        termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
+                    }
+
+                    if (term.termLabels != null)
+                    {
+                        foreach (var label in term.termLabels)
+                        {
+                            if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
+                            {
+                                termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                            }
+                        }
+                    }
+                    cc.Load(termToUpdate);
+                    await cc.ExecuteQueryAsync();
+                }
+                else {
+                    var newTerm = termSet.CreateTerm(term.termName, 1033, Guid.NewGuid());
+
+                    cc.Load(newTerm);
+                    await cc.ExecuteQueryAsync();
+                    term.termId = newTerm.Id.ToString();
+                }
+
+                
+ 
             }
             return termList;
         }

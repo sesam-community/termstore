@@ -1,8 +1,8 @@
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.0-stretch-slim AS base
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.0.0-preview5 AS base
 WORKDIR /app
 EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0-stretch AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0.100-preview5 AS build
 WORKDIR /src
 COPY ["SP_Taxonomy_client_test/SP_Taxonomy_client_test.csproj", "SP_Taxonomy_client_test/"]
 RUN dotnet restore "SP_Taxonomy_client_test/SP_Taxonomy_client_test.csproj"
