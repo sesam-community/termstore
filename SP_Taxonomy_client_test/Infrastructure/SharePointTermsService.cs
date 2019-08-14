@@ -8,6 +8,7 @@ using SP_Taxonomy_client_test.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SP_Taxonomy_client_test.Infrastructure
@@ -192,8 +193,15 @@ namespace SP_Taxonomy_client_test.Infrastructure
                 cc.Load(termSet, set => set.Name, set => set.Terms.Include(term => term.Name));
                 await cc.ExecuteQueryAsync();
 
+                byte[] bytes = Encoding.Default.GetBytes(term.termName);
+                term.termName = Encoding.UTF8.GetString(bytes);
+
                 if (termSet.Terms.Any(x => x.Name == term.termName))
                 {
+                    if (term.termId == null) {
+                        continue;
+                    }
+
                     var termToUpdate = termSet.Terms.GetById(new Guid(term.termId));
                     cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
                     await cc.ExecuteQueryAsync();
