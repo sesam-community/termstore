@@ -194,7 +194,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                 await cc.ExecuteQueryAsync();
 
                 byte[] bytes = Encoding.Default.GetBytes(term.termName);
-                term.termName = Encoding.UTF8.GetString(bytes);
+                term.termName = Encoding.UTF8.GetString(bytes).Replace('&', (char)0xff06).Replace('"', (char)0xff02); ;
+                
 
                 if (termSet.Terms.Any(x => x.Name == term.termName))
                 {
