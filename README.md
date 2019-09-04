@@ -5,8 +5,8 @@ Simple service to fetch/create managed metadata (terms) on Sharepoint online
 Works with Sharepoint Online - username/password authentication
 
 ### env vars
-url - url for sharepoint tenant
-username - username to be used for authentication
+url - url for sharepoint tenant  
+username - username to be used for authentication  
 password - password to be used for authenticaiton 
 
 ### endpoints
