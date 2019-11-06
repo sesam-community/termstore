@@ -1,31 +1,50 @@
-# sp-term-source
+# Termstore
 
-Simple service to fetch/create managed metadata (terms) on Sharepoint online
+Simple service to fetch/create/update managed metadata (terms) on Sharepoint online
 
 Works with Sharepoint Online - username/password authentication
 
 ### env vars
-url - url for sharepoint tenant  
-username - username to be used for authentication  
+url - url for sharepoint tenant
+
+username - username to be used for authentication
+
 password - password to be used for authenticaiton 
 
-### endpoints
+### Functional endpoints
 
 `GET /api/termset` - return JSON array with all terms from default termstore  
-`POST /api/termset` - takes JSON array with terms to be creates on input and creates trems on SharePoint 
+`POST /api/termset` - takes JSON array with terms to be created as a new term or to update an existing term.
 
-Entity shape to POST new terms:
+Entity shape to POST terms:
+
 ```json
 [
-    {
-        "termSetId": "<term set id>",
-        "termName": "<term set name>"
-    },
-    {
-        "termSetId": "<term set id>",
-        "termName": "<term set name>"
-    }
-]
+		"termGroupName": "<term-group>",
+	    "termGroupId": "<id-int-string-sequence>",
+	    "termSetName": "<term-group>",
+	    "termSetId": "id-int-string-sequence>",
+	    "termName": "string",
+	    "termId": "id-int-string-sequence>",
+	    "termLcid": int,
+	    "termDescription": "string of length [0-100]",
+	    "termIsAvailableForTagging": boolean,
+	    "termLocalCustomProperties": {"key":"value"},
+	    "termCustomProperties": {"Key": "value"},
+	    "termIsDeprecated": boolean,
+	    "termLabels": [
+	        {
+	            "isDefaultForLanguage": boolean [to add aliases here, set these to false],
+	            "language": int,
+	            "value": "string "
+	        },
+	        {
+	        	"isDefaultForLanguage": boolean,
+	            "language": int,
+	            "value": "string"	
+	        }
+	    ]
+}]
 ```
 
 ### Build  
