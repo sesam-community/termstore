@@ -20,6 +20,7 @@ Entity shape to POST terms:
 
 ```json
 [
+	{
 		"termGroupName": "<term-group>",
 	    "termGroupId": "<id-int-string-sequence>",
 	    "termSetName": "<term-group>",
@@ -36,7 +37,7 @@ Entity shape to POST terms:
 	        {
 	            "isDefaultForLanguage": boolean [to add aliases here, set these to false],
 	            "language": int,
-	            "value": "string "
+	            "value": "string"
 	        },
 	        {
 	        	"isDefaultForLanguage": boolean,
