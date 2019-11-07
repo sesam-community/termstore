@@ -32,7 +32,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
             this.url = this.config["url"];
             this.username = this.config["username"];
             this.password = this.config["password"];
-
+            
             try
             {
                 this.cc = AuthHelper.GetClientContextForUsernameAndPassword(url, username, password);
@@ -238,7 +238,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     await cc.ExecuteQueryAsync();
                 }
                 else {
-                    var newTerm = termSet.CreateTerm(term.termName, 1033, Guid.NewGuid());
+                    var newTerm = termSet.CreateTerm(term.termName,term.termLcid, Guid.NewGuid());
                     cc.Load(newTerm, t => t.Name, t => t.Labels.Include(lName => lName.Value));
                     await cc.ExecuteQueryAsync();
 
