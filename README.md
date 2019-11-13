@@ -15,6 +15,7 @@ password - password to be used for authenticaiton
 
 `GET /api/termset` - return JSON array with all terms from default termstore  
 `POST /api/termset` - takes JSON array with terms to be created as a new term or to update an existing term.
+- **When updating an existing term, you must set one of the defined aliases to true, as this will take the new name for that term...**
 
 Entity shape to POST terms:
 
@@ -35,7 +36,7 @@ Entity shape to POST terms:
 	    "termIsDeprecated": boolean,
 	    "termLabels": [
 	        {
-	            "isDefaultForLanguage": boolean [to add aliases here, set these to false],
+	            "isDefaultForLanguage": boolean [to add aliases here, set these to false, but one to true [!!Really important!!]],
 	            "language": int,
 	            "value": "string"
 	        },

@@ -12,7 +12,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace SP_Taxonomy_client_test.Infrastructure
 {
@@ -27,16 +28,32 @@ namespace SP_Taxonomy_client_test.Infrastructure
 
         public SharePointTermsService(IConfiguration config)
         {
-            this.config = config;
-
-            this.url = this.config["url"];
-            this.username = this.config["username"];
-            this.password = this.config["password"];
             
-            try
-            {
-                this.cc = AuthHelper.GetClientContextForUsernameAndPassword(url, username, password);
-            }
+            this.config = config;
+
+            if (this.config["url"] != null)
+            {
+                this.url = this.config["url"];
+                this.username = this.config["username"];
+                this.password = this.config["password"];
+            }
+            else
+            {
+               using (var file = System.IO.File.OpenText("helpers.json"))
+                {
+                    var reader = new JsonTextReader(file);
+                    var jObject = JObject.Load(reader);
+                    this.url = jObject.GetValue("url").ToString();
+                    this.username = jObject.GetValue("username").ToString();
+                    this.password = jObject.GetValue("password").ToString();
+                }
+            }
+                  
+            try
+            {
+                this.cc = AuthHelper.GetClientContextForUsernameAndPassword(url, username, password);
+            }
+
             catch (NullReferenceException e)
             {
                 System.Diagnostics.Debug.WriteLine("Exception occured whilst obtaining client context due to: " + e.Message);
@@ -125,6 +142,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 term => term.LocalCustomProperties,
                                 term => term.CustomProperties,
                                 term => term.IsDeprecated,
+                                term => term.IsRoot,
                                 term => term.Labels.Include(
                                     label => label.Value,
                                     label => label.Language,
@@ -162,6 +180,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             termLocalCustomProperties = term.LocalCustomProperties,
                             termCustomProperties = term.CustomProperties,
                             termIsDeprecated = term.IsDeprecated,
+                            termIsRoot = term.IsRoot,
                             termLabels = term.Labels.Select(
                                 x => new TermLabel {
                                     IsDefaultForLanguage = x.IsDefaultForLanguage,
@@ -184,61 +203,61 @@ namespace SP_Taxonomy_client_test.Infrastructure
         /// <returns></returns>
         public async Task<ActionResult<IEnumerable<TermModel>>> CreateFromList(TermModel[] termList)
         {
-            TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
-            cc.Load(taxonomySession);
-            await cc.ExecuteQueryAsync();
+            TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
+            cc.Load(taxonomySession);
+            await cc.ExecuteQueryAsync();
 
-            TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
-            
-            foreach (var term in termList)
-            {
-                var termSet = termStore.GetTermSet(new Guid(term.termSetId));
+            TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
+            
+            foreach (var term in termList)
+            {
+                var termSet = termStore.GetTermSet(new Guid(term.termSetId));
 
-                cc.Load(termSet, set => set.Name, set => set.Terms.Include(term => term.Name));
-                await cc.ExecuteQueryAsync();
+                cc.Load(termSet, set => set.Name, set => set.Terms.Include(term => term.Name));
+                await cc.ExecuteQueryAsync();
 
-                byte[] bytes = Encoding.Default.GetBytes(term.termName);
-                term.termName = Encoding.UTF8.GetString(bytes).Replace('&', (char)0xff06).Replace('"', (char)0xff02); ;
-                
+                byte[] bytes = Encoding.Default.GetBytes(term.termName);
+                term.termName = Encoding.UTF8.GetString(bytes).Replace('&', (char)0xff06).Replace('"', (char)0xff02); ;
+                
 
-                if (termSet.Terms.Any(x => x.Name == term.termName))
-                {
-                    if (term.termId == null) {
-                        continue;
-                    }
+                if (termSet.Terms.Any(x => x.Name == term.termName))
+                {
+                    if (term.termId == null) {
+                        continue;
+                    }
 
-                    var termToUpdate = termSet.Terms.GetById(new Guid(term.termId));
-                    cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
-                    await cc.ExecuteQueryAsync();
-    
-                    termToUpdate.Name = term.termName;     
-                    //termToUpdate.SetDescription(term.termDescription, term.termLcid); 
-                    
-                    foreach (var customLocalProperty in term.termLocalCustomProperties) {
-                        termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                    }
+                    var termToUpdate = termSet.Terms.GetById(new Guid(term.termId));
+                    cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                    await cc.ExecuteQueryAsync();
+    
+                    termToUpdate.Name = term.termName;     
+                    //termToUpdate.SetDescription(term.termDescription, term.termLcid); 
 
-                    foreach (var customProperty in term.termCustomProperties) {
-                        Console.WriteLine(customProperty.Key + customProperty.Value);
-                        termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
-                    }
+                    foreach (var customLocalProperty in term.termLocalCustomProperties) {
+                        termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                    }
 
-                    if (term.termLabels != null)
-                    {
-                        foreach (var label in term.termLabels)
-                        {
-                            if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
-                            {
-                                termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                            }
-                        }
-                    }
-                    cc.Load(termToUpdate);
-                    termStore.CommitAll();
-                    await cc.ExecuteQueryAsync();
-                }
+                    foreach (var customProperty in term.termCustomProperties) {
+                        Console.WriteLine(customProperty.Key + customProperty.Value);
+                        termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
+                    }
+
+                    if (term.termLabels != null)
+                    {
+                        foreach (var label in term.termLabels)
+                        {
+                            if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
+                            {
+                                termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                            }
+                        }
+                    }
+                    cc.Load(termToUpdate);
+                    termStore.CommitAll();
+                    await cc.ExecuteQueryAsync();
+                }
                 else {
-                    var newTerm = termSet.CreateTerm(term.termName,term.termLcid, Guid.NewGuid());
+                   var newTerm = termSet.CreateTerm(term.termName,term.termLcid, Guid.NewGuid());
                     cc.Load(newTerm, t => t.Name, t => t.Labels.Include(lName => lName.Value));
                     await cc.ExecuteQueryAsync();
 
@@ -249,18 +268,14 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     }
 
                     foreach (var customProperty in term.termCustomProperties) {
-                        Console.WriteLine(customProperty.Key + customProperty.Value);
                         newTerm.SetCustomProperty(customProperty.Key, customProperty.Value);
                     }
 
                     if (term.termLabels != null)
                     {
-                        foreach (var label in term.termLabels)
+                        foreach (var label in term.termLabels) 
                         {
-                            if (!newTerm.Labels.Any(x => x.Value == label.Value))
-                            {
-                                newTerm.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                            }
+                            newTerm.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
                         }
                     }
                     cc.Load(newTerm);
