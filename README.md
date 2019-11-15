@@ -9,13 +9,19 @@ url - url for sharepoint tenant
 
 username - username to be used for authentication
 
-password - password to be used for authenticaiton 
+password - password to be used for authenticaiton
+
+## pitfalls
+
+- It may seem you support other languages than 1033 (English), but when creating aliases, Termstore seems somewhat sensitive with regards to languages. Therefore you should stay with 1033 for now.
+
+- You have to post termCustomProperties and termLocalCustomProperties otherwise the post will fail.
+    - an empty dict works fine.
 
 ### Functional endpoints
 
 `GET /api/termset` - return JSON array with all terms from default termstore  
 `POST /api/termset` - takes JSON array with terms to be created as a new term or to update an existing term.
-- **When updating an existing term, you must set one of the defined aliases to true, as this will take the new name for that term...**
 
 Entity shape to POST terms:
 
@@ -36,7 +42,7 @@ Entity shape to POST terms:
 	    "termIsDeprecated": boolean,
 	    "termLabels": [
 	        {
-	            "isDefaultForLanguage": boolean [to add aliases here, set these to false, but one to true [!!Really important!!]],
+	            "isDefaultForLanguage": boolean [to add aliases here, set these to false],
 	            "language": int,
 	            "value": "string"
 	        },

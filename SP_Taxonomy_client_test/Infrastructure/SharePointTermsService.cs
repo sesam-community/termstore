@@ -199,7 +199,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
         /// </summary>
         /// <param name="termList"></param>
         /// <returns></returns>
-        public async Task<ActionResult<IEnumerable<TermModel>>> CreateFromList(TermModel[] termList)
+        public async Task<ActionResult<IEnumerable<TermModel>>> CreateFromList(TermModel[]? termList)
         {
             TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             cc.Load(taxonomySession);
@@ -254,10 +254,10 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     }
                     cc.Load(termToUpdate);
                     termStore.CommitAll();
-                    await cc.ExecuteQueryAsync();
+                    cc.ExecuteQuery();
                 }
                 else {
-                   var newTerm = termSet.CreateTerm(term.termName,term.termLcid, Guid.NewGuid());
+                    var newTerm = termSet.CreateTerm(term.termName,term.termLcid, Guid.NewGuid());
                     cc.Load(newTerm, t => t.Name, t => t.Labels.Include(lName => lName.Value));
                     await cc.ExecuteQueryAsync();
 
@@ -283,7 +283,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     }
                     cc.Load(newTerm);
                     termStore.CommitAll();
-                    await cc.ExecuteQueryAsync();
+                    cc.ExecuteQuery();
                     term.termId = newTerm.Id.ToString();
                 }             
             }
