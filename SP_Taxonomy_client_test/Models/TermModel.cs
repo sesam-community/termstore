@@ -15,7 +15,6 @@ namespace SP_Taxonomy_client_test.Models
         public string termName { get; set; }
         public string termId { get; set; }
         //language code
-        public bool termIsRoot {get; set;}
         public int termLcid { get; set; }
         public string termDescription { get; set; }
         public bool termIsAvailableForTagging { get; set; }

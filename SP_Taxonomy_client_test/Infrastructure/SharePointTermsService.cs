@@ -142,7 +142,6 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 term => term.LocalCustomProperties,
                                 term => term.CustomProperties,
                                 term => term.IsDeprecated,
-                                term => term.IsRoot,
                                 term => term.Labels.Include(
                                     label => label.Value,
                                     label => label.Language,
@@ -180,7 +179,6 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             termLocalCustomProperties = term.LocalCustomProperties,
                             termCustomProperties = term.CustomProperties,
                             termIsDeprecated = term.IsDeprecated,
-                            termIsRoot = term.IsRoot,
                             termLabels = term.Labels.Select(
                                 x => new TermLabel {
                                     IsDefaultForLanguage = x.IsDefaultForLanguage,
@@ -208,7 +206,6 @@ namespace SP_Taxonomy_client_test.Infrastructure
             await cc.ExecuteQueryAsync();
 
             TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
-            
             foreach (var term in termList)
             {
                 var termSet = termStore.GetTermSet(new Guid(term.termSetId));
@@ -229,16 +226,15 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     var termToUpdate = termSet.Terms.GetById(new Guid(term.termId));
                     cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
                     await cc.ExecuteQueryAsync();
-    
-                    termToUpdate.Name = term.termName;     
-                    //termToUpdate.SetDescription(term.termDescription, term.termLcid); 
+                    
+                    //termToUpdate.Name = term.termName;     
+                    //termToUpdate.SetDescription(term.termDescription, term.termLcid);
 
                     foreach (var customLocalProperty in term.termLocalCustomProperties) {
                         termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
                     }
 
                     foreach (var customProperty in term.termCustomProperties) {
-                        Console.WriteLine(customProperty.Key + customProperty.Value);
                         termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
                     }
 
@@ -249,6 +245,10 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
                             {
                                 termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                if (label.IsDefaultForLanguage == true)
+                                {
+                                    termToUpdate.Name = label.Value;
+                                }
                             }
                         }
                     }
@@ -275,7 +275,10 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     {
                         foreach (var label in term.termLabels) 
                         {
-                            newTerm.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                            if (!newTerm.Labels.Any(x => x.Value == label.Value))
+                            {
+                                newTerm.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                            }
                         }
                     }
                     cc.Load(newTerm);
