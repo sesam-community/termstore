@@ -223,68 +223,77 @@ namespace SP_Taxonomy_client_test.Infrastructure
                         continue;
                     }
 
-                    var termToUpdate = termSet.Terms.GetById(new Guid(term.termId));
-                    cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
-                    await cc.ExecuteQueryAsync();
-                    
-                    //termToUpdate.Name = term.termName;     
-                    //termToUpdate.SetDescription(term.termDescription, term.termLcid);
-
-                    foreach (var customLocalProperty in term.termLocalCustomProperties) {
-                        termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                    }
-
-                    foreach (var customProperty in term.termCustomProperties) {
-                        termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
-                    }
-
-                    if (term.termLabels != null)
+                    try
                     {
-                        foreach (var label in term.termLabels)
+                        var termToUpdate = termSet.Terms.GetById(new Guid(term.termId));
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                        await cc.ExecuteQueryAsync();
+                        
+                        //termToUpdate.Name = term.termName;     
+                        //termToUpdate.SetDescription(term.termDescription, term.termLcid);
+
+                        foreach (var customLocalProperty in term.termLocalCustomProperties) {
+                            termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                        }
+
+                        foreach (var customProperty in term.termCustomProperties) {
+                            termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
+                        }
+
+                        if (term.termLabels != null)
                         {
-                            if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
+                            foreach (var label in term.termLabels)
                             {
-                                termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                if (label.IsDefaultForLanguage == true)
+                                if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
                                 {
-                                    termToUpdate.Name = label.Value;
+                                    termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                    if (label.IsDefaultForLanguage == true)
+                                    {
+                                        termToUpdate.Name = label.Value;
+                                    }
                                 }
                             }
                         }
+                        cc.Load(termToUpdate);
+                        termStore.CommitAll();
+                        cc.ExecuteQuery();
                     }
-                    cc.Load(termToUpdate);
-                    termStore.CommitAll();
-                    cc.ExecuteQuery();
+                    catch (Exception e) {
+                        Console.WriteLine("Failing with error : " + e.Message);
+                    }
                 }
                 else {
-                    var newTerm = termSet.CreateTerm(term.termName,term.termLcid, Guid.NewGuid());
-                    cc.Load(newTerm, t => t.Name, t => t.Labels.Include(lName => lName.Value));
-                    await cc.ExecuteQueryAsync();
+                    try
+                    {
+                        var newTerm = termSet.CreateTerm(term.termName,term.termLcid, Guid.NewGuid());
+                        cc.Load(newTerm, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                        //await cc.ExecuteQueryAsync();
 
-                    //newTerm.SetDescription(term.termDescription, term.termLcid); 
-                    
-                    foreach (var customLocalProperty in term.termLocalCustomProperties) {
-                        newTerm.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                    }
+                        //newTerm.SetDescription(term.termDescription, term.termLcid); 
+                        
+                        foreach (var customLocalProperty in term.termLocalCustomProperties) {
+                            newTerm.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                        }
 
-                    foreach (var customProperty in term.termCustomProperties) {
-                        newTerm.SetCustomProperty(customProperty.Key, customProperty.Value);
-                    }
+                        foreach (var customProperty in term.termCustomProperties) {
+                            newTerm.SetCustomProperty(customProperty.Key, customProperty.Value);
+                        }
 
-                    if (term.termLabels != null)
-                    {
-                        foreach (var label in term.termLabels) 
-                        {
-                            if (!newTerm.Labels.Any(x => x.Value == label.Value))
-                            {
-                                newTerm.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                            }
-                        }
-                    }
-                    cc.Load(newTerm);
-                    termStore.CommitAll();
-                    cc.ExecuteQuery();
-                    term.termId = newTerm.Id.ToString();
+                        if (term.termLabels != null)
+                        {
+                            foreach (var label in term.termLabels) 
+                            {
+                            newTerm.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                            }
+                        }
+                        cc.Load(newTerm);
+                        termStore.CommitAll();
+                        cc.ExecuteQuery();
+                        term.termId = newTerm.Id.ToString();
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine("Failing with error : " + e.Message);
+                    }
                 }             
             }
             return termList;
