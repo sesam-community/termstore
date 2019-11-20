@@ -141,6 +141,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 term => term.IsAvailableForTagging,
                                 term => term.LocalCustomProperties,
                                 term => term.CustomProperties,
+                                term => term.Terms,
                                 term => term.IsDeprecated,
                                 term => term.Labels.Include(
                                     label => label.Value,
@@ -178,6 +179,20 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             termIsAvailableForTagging = term.IsAvailableForTagging,
                             termLocalCustomProperties = term.LocalCustomProperties,
                             termCustomProperties = term.CustomProperties,
+                            termChildTerms = term.Terms.Select( dk => new childModel {
+                                childName = dk.Name,
+                                childDescription = dk.Description,
+                                childLocalCustomProperties = dk.LocalCustomProperties,
+                                childCustomProperties = dk.CustomProperties,
+                                childId = dk.Id.ToString(),
+                                childLabels = dk.Labels.Select(
+                                    no => new ChildLabel {
+                                        IsDefaultForLanguage = no.IsDefaultForLanguage,
+                                        Language = no.Language,
+                                        Value = no.Value 
+                                    }
+                                ).ToList()
+                            }).ToList(),
                             termIsDeprecated = term.IsDeprecated,
                             termLabels = term.Labels.Select(
                                 x => new TermLabel {
@@ -214,9 +229,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                 await cc.ExecuteQueryAsync();
 
                 byte[] bytes = Encoding.Default.GetBytes(term.termName);
-                term.termName = Encoding.UTF8.GetString(bytes).Replace('&', (char)0xff06).Replace('"', (char)0xff02); ;
+                term.termName = Encoding.UTF8.GetString(bytes).Replace('&', (char)0xff06).Replace('"', (char)0xff02);
                 
-
                 if (termSet.Terms.Any(x => x.Name == term.termName))
                 {
                     if (term.termId == null) {
@@ -230,16 +244,26 @@ namespace SP_Taxonomy_client_test.Infrastructure
                         await cc.ExecuteQueryAsync();
                         
                         //termToUpdate.Name = term.termName;     
-                        //termToUpdate.SetDescription(term.termDescription, term.termLcid);
-
-                        foreach (var customLocalProperty in term.termLocalCustomProperties) {
-                            termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                        if (term.termDescription != null)
+                        {
+                            termToUpdate.SetDescription(term.termDescription, term.termLcid);
                         }
 
-                        foreach (var customProperty in term.termCustomProperties) {
-                            termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
+                        if (term.termLocalCustomProperties != null) 
+                        {
+                            foreach (var customLocalProperty in term.termLocalCustomProperties) 
+                            {
+                                termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                            }
                         }
-
+                        if (term.termCustomProperties != null) 
+                        {
+                            foreach (var customProperty in term.termCustomProperties) 
+                            {
+                                termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
+                            }
+                        }
+                        
                         if (term.termLabels != null)
                         {
                             foreach (var label in term.termLabels)
@@ -254,6 +278,45 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 }
                             }
                         }
+
+                        foreach(var child in term.termChildTerms)
+                        {
+                            var childToUpdate = termSet.Terms.GetById(new Guid(child.childId));
+                            cc.Load(childToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                            
+                            if (child.childLocalCustomProperties != null) 
+                            {
+                                foreach (var customLocalProperty in child.childLocalCustomProperties) 
+                                {
+                                    childToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                                }
+                            }
+                            
+                            if (child.childCustomProperties != null) 
+                            {
+                                foreach (var customProperty in child.childCustomProperties) 
+                                {
+                                    childToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
+                                }
+                            }
+
+                            if (child.childLabels != null)
+                            {
+                                foreach (var label in child.childLabels)
+                                {
+                                    if (!childToUpdate.Labels.Any(no => no.Value == label.Value))
+                                    {
+                                        childToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                        if (label.IsDefaultForLanguage == true)
+                                        {
+                                            childToUpdate.Name = label.Value;
+                                        }
+                                    }
+                                }
+                            }
+                            cc.Load(childToUpdate);
+                        }
+
                         cc.Load(termToUpdate);
                         termStore.CommitAll();
                         cc.ExecuteQuery();
@@ -267,25 +330,67 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     {
                         var newTerm = termSet.CreateTerm(term.termName,term.termLcid, Guid.NewGuid());
                         cc.Load(newTerm, t => t.Name, t => t.Labels.Include(lName => lName.Value));
-                        //await cc.ExecuteQueryAsync();
-
-                        //newTerm.SetDescription(term.termDescription, term.termLcid); 
+                        
+                        if (term.termDescription != null)
+                        {
+                            newTerm.SetDescription(term.termDescription, term.termLcid);
+                        }
                         
-                        foreach (var customLocalProperty in term.termLocalCustomProperties) {
-                            newTerm.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                        }
+                        if (term.termLocalCustomProperties != null) 
+                        {
+                            foreach (var customLocalProperty in term.termLocalCustomProperties) 
+                            {
+                                newTerm.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                            }
+                        }
 
-                        foreach (var customProperty in term.termCustomProperties) {
-                            newTerm.SetCustomProperty(customProperty.Key, customProperty.Value);
-                        }
+                        if (term.termCustomProperties != null) 
+                        {
+                            foreach (var customProperty in term.termCustomProperties) 
+                            {
+                                newTerm.SetCustomProperty(customProperty.Key, customProperty.Value);
+                            }
+                        }
 
                         if (term.termLabels != null)
                         {
                             foreach (var label in term.termLabels) 
                             {
-                            newTerm.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                newTerm.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
                             }
                         }
+                        
+                        foreach(var child in term.termChildTerms)
+                        {
+                            var newChild = newTerm.CreateTerm(child.childName, child.childLcid, Guid.NewGuid());
+                            cc.Load(newChild, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                            
+                            if (child.childLocalCustomProperties != null) 
+                            {
+                                foreach (var customLocalProperty in  child.childLocalCustomProperties) 
+                                {
+                                    newChild.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                                }
+                            }
+
+                            if (child.childCustomProperties != null) 
+                            {
+                                foreach (var customProperty in child.childCustomProperties) 
+                                {
+                                    newChild.SetCustomProperty(customProperty.Key, customProperty.Value);
+                                }
+                            }
+
+                            if (child.childLabels != null)
+                            {
+                                foreach (var label in child.childLabels) 
+                                {
+                                    newChild.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                }
+                            }
+                            cc.Load(newChild);
+                        }
+
                         cc.Load(newTerm);
                         termStore.CommitAll();
                         cc.ExecuteQuery();

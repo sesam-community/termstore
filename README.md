@@ -15,6 +15,14 @@ password - password to be used for authenticaiton
 
 - It may seem you support other languages than 1033 (English), but when creating aliases, Termstore seems somewhat sensitive with regards to languages. Therefore you should stay with 1033 for now.
 
+## supported term dimensions
+- Termgroup
+  - TermSet
+    - Term
+      - Childterm
+
+## when updating terms
+- Only "Term" can be updated. The service does not currently support updating of "Childterm" after creation.
 - You have to post termCustomProperties and termLocalCustomProperties otherwise the post will fail.
     - an empty dict works fine.
 

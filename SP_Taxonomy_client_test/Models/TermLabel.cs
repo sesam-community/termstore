@@ -11,4 +11,11 @@ namespace SP_Taxonomy_client_test.Models
         public int Language { get; set; }
         public string Value { get; set; }
     }
+
+    public class ChildLabel 
+    {
+        public bool IsDefaultForLanguage { get; set; }
+        public int Language { get; set; }
+        public string Value { get; set; }
+    }
 }
