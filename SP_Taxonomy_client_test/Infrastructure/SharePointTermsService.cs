@@ -8,6 +8,8 @@ using Microsoft.SharePoint.Administration;
 using Microsoft.SharePoint.Client.Taxonomy;
 using SP_Taxonomy_client_test.Models;
 using System;
+using System.IO;
+using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -141,12 +143,21 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 term => term.IsAvailableForTagging,
                                 term => term.LocalCustomProperties,
                                 term => term.CustomProperties,
-                                term => term.Terms,
                                 term => term.IsDeprecated,
                                 term => term.Labels.Include(
                                     label => label.Value,
                                     label => label.Language,
-                                    label => label.IsDefaultForLanguage))
+                                    label => label.IsDefaultForLanguage),
+                                term => term.Terms.Include(
+                                    term => term.Name,
+                                    term => term.Description,
+                                    term => term.Id,
+                                    term => term.LocalCustomProperties,
+                                    term => term.CustomProperties,
+                                    term => term.Labels.Include(
+                                        label => label.Value,
+                                        label => label.Language,
+                                        label => label.IsDefaultForLanguage)))
                         )
                     )
             );
@@ -220,6 +231,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
             cc.Load(taxonomySession);
             await cc.ExecuteQueryAsync();
 
+            // On refactor make this work with defined term set_ID's.
+            //var termSet = termStore.GetTermSet(new Guid(TERM_SET_ID));
+
             TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
             foreach (var term in termList)
             {
@@ -278,7 +292,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 }
                             }
                         }
-
+                        
+                        Console.WriteLine("Writing name of parent term : " + term.termName);
+                        var count = 1;
                         foreach(var child in term.termChildTerms)
                         {
                             var childToUpdate = termSet.Terms.GetById(new Guid(child.childId));
@@ -315,11 +331,15 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 }
                             }
                             cc.Load(childToUpdate);
+                            Console.WriteLine("Writing iteration count to check where number of children crash termstore:" + count);
+                            Console.WriteLine("Writing name of child term : " + child.childName);
+                            count++;
                         }
 
                         cc.Load(termToUpdate);
                         termStore.CommitAll();
                         cc.ExecuteQuery();
+                    
                     }
                     catch (Exception e) {
                         Console.WriteLine("Failing with error : " + e.Message);
@@ -360,6 +380,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             }
                         }
                         
+                        Console.WriteLine("Writing name of parent term : " + term.termName);
+                        var count = 1;
                         foreach(var child in term.termChildTerms)
                         {
                             var newChild = newTerm.CreateTerm(child.childName, child.childLcid, Guid.NewGuid());
@@ -383,12 +405,15 @@ namespace SP_Taxonomy_client_test.Infrastructure
 
                             if (child.childLabels != null)
                             {
-                                foreach (var label in child.childLabels) 
+                                foreach (var label in child.childLabels) 
                                 {
                                     newChild.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                }
+                                }
                             }
                             cc.Load(newChild);
+                            Console.WriteLine("Writing iteration count to check where number of children crash termstore:" + count);
+                            Console.WriteLine("Writing name of child term : " + child.childName);
+                            count++;
                         }
 
                         cc.Load(newTerm);
