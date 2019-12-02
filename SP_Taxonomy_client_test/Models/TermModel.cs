@@ -35,4 +35,23 @@ namespace SP_Taxonomy_client_test.Models
         public IDictionary<string, string> childCustomProperties { get; set;}
         public List<ChildLabel> childLabels { get; set; }
     }
+
+    public class childFromParentModel {
+        public string cpGroupName { get; set; }
+        public string cpGroupId { get; set; }
+        public string cpSetName { get; set; }
+        public string cpSetId { get; set; }
+        public string cpTermName { get; set; }
+        public string cpTermId { get; set; }
+        //language code
+        public string cpChildName { get; set; }
+        public string cpChildId { get; set; }
+        public string cpChildDescription { get; set;}
+        public int cpChildLcid { get; set;}
+        public IDictionary<string, string> cpChildLocalCustomProperties { get; set;}
+        public IDictionary<string, string> cpChildCustomProperties { get; set;}
+        public List<ChildLabel> cpChildLabels { get; set; }
+    }
 }
+
+

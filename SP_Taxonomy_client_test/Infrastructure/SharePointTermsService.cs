@@ -220,6 +220,59 @@ namespace SP_Taxonomy_client_test.Infrastructure
 
             return resultList;
         }
+
+        public async Task<ActionResult<IEnumerable<childFromParentModel>>> PostChildTerms()
+        {
+            List<childFromParentModel> resultList = new List<childFromParentModel>(32);
+            TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
+            TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
+            Web web = cc.Web;
+            cc.Load(web);
+        
+            await cc.ExecuteQueryAsync();
+
+            foreach (TermGroup group in termStore.Groups)
+            {
+                foreach (TermSet termSet in group.TermSets)
+                {
+                    foreach (Term parentTerm in termSet.Terms)
+                    {
+                        var terms = parentTerm.Terms;
+                        
+                        foreach (Term term in terms)
+                        {
+                            var _term = new childFromParentModel()
+                            {
+                                cpGroupName= group.Name,
+                                cpSetName = termSet.Name,
+                                cpTermName = term.Name,
+                                cpGroupId = group.Id.ToString(),
+                                cpSetId = termSet.Id.ToString(),
+                                cpTermId = term.Id.ToString(),
+                                cpChildName = term.Name,
+                                cpChildId = term.Id.ToString(),
+                                cpChildDescription = term.Description,
+                                cpChildLocalCustomProperties = term.LocalCustomProperties,
+                                cpChildCustomProperties = term.CustomProperties,
+                                cpChildLabels = term.Labels.Select(
+                                        no => new ChildLabel {
+                                            IsDefaultForLanguage = no.IsDefaultForLanguage,
+                                            Language = no.Language,
+                                            Value = no.Value 
+                                        }
+                                    ).ToList()
+                            };
+
+                            resultList.Add(_term);
+                        
+                        }
+                    }
+                    
+                }
+            }
+            return resultList;
+        }
+
         /// <summary>
         /// Create one or more terms 
         /// </summary>
@@ -293,7 +346,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             }
                         }
                         
+                        Console.WriteLine("---------------------------------------------------------");
                         Console.WriteLine("Writing name of parent term : " + term.termName);
+                        Console.WriteLine("---------------------------------------------------------");
                         var count = 1;
                         foreach(var child in term.termChildTerms)
                         {
@@ -380,7 +435,10 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             }
                         }
                         
+
+                        Console.WriteLine("---------------------------------------------------------");
                         Console.WriteLine("Writing name of parent term : " + term.termName);
+                        Console.WriteLine("---------------------------------------------------------");
                         var count = 1;
                         foreach(var child in term.termChildTerms)
                         {
@@ -420,6 +478,141 @@ namespace SP_Taxonomy_client_test.Infrastructure
                         termStore.CommitAll();
                         cc.ExecuteQuery();
                         term.termId = newTerm.Id.ToString();
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine("Failing with error : " + e.Message);
+                    }
+                }             
+            }
+            return termList;
+        }
+        
+        /// <summary>
+        /// Create one or more terms 
+        /// </summary>
+        /// <param name="termList"></param>
+        /// <returns></returns>
+        public async Task<ActionResult<IEnumerable<childFromParentModel>>>CreateFromParentList(childFromParentModel[]? termList)
+        {
+            TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
+            cc.Load(taxonomySession);
+            await cc.ExecuteQueryAsync();
+
+            // On refactor make this work with defined term set_ID's.
+            //var termSet = termStore.GetTermSet(new Guid(TERM_SET_ID));
+
+            TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
+            
+            foreach (var term in termList)
+            {
+                var parentTerm = termStore.GetTerm(new Guid(term.cpTermId));
+
+                cc.Load(parentTerm, set => set.Name, set => set.Terms.Include(term => term.Name));
+                await cc.ExecuteQueryAsync();
+
+                byte[] bytes = Encoding.Default.GetBytes(term.cpChildName);
+                term.cpChildName = Encoding.UTF8.GetString(bytes).Replace('&', (char)0xff06).Replace('"', (char)0xff02);
+                
+                if (parentTerm.Terms.Any(x => x.Name == term.cpChildName))
+                {
+                    if (term.cpChildId == null) {
+                        continue;
+                    }
+
+                    try
+                    {
+                        var termToUpdate = parentTerm.Terms.GetById(new Guid(term.cpChildId));
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                        await cc.ExecuteQueryAsync();
+                        
+                        //termToUpdate.Name = term.termName;     
+                        if (term.cpChildDescription != null)
+                        {
+                            termToUpdate.SetDescription(term.cpChildDescription, term.cpChildLcid);
+                        }
+
+                        if (term.cpChildLocalCustomProperties != null) 
+                        {
+                            foreach (var customLocalProperty in term.cpChildLocalCustomProperties) 
+                            {
+                                termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                            }
+                        }
+                        if (term.cpChildCustomProperties != null) 
+                        {
+                            foreach (var customProperty in term.cpChildCustomProperties) 
+                            {
+                                termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
+                            }
+                        }
+                        
+                        if (term.cpChildLabels != null)
+                        {
+                            foreach (var label in term.cpChildLabels)
+                            {
+                                if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
+                                {
+                                    termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                    if (label.IsDefaultForLanguage == true)
+                                    {
+                                        termToUpdate.Name = label.Value;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        Console.WriteLine("Writing name of child term : " + term.cpChildName);
+
+                        cc.Load(termToUpdate);
+                        termStore.CommitAll();
+                        cc.ExecuteQuery();
+                    
+                    }
+                    catch (Exception e) {
+                        Console.WriteLine("Failing with error : " + e.Message);
+                    }
+                }
+                else {
+                    try
+                    {
+                        var newTerm = parentTerm.CreateTerm(term.cpChildName,term.cpChildLcid, Guid.NewGuid());
+                        cc.Load(newTerm, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                        
+                        if (term.cpChildDescription != null)
+                        {
+                            newTerm.SetDescription(term.cpChildDescription, term.cpChildLcid);
+                        }
+                        
+                        if (term.cpChildLocalCustomProperties != null) 
+                        {
+                            foreach (var customLocalProperty in term.cpChildLocalCustomProperties) 
+                            {
+                                newTerm.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                            }
+                        }
+
+                        if (term.cpChildCustomProperties != null) 
+                        {
+                            foreach (var customProperty in term.cpChildCustomProperties) 
+                            {
+                                newTerm.SetCustomProperty(customProperty.Key, customProperty.Value);
+                            }
+                        }
+
+                        if (term.cpChildLabels!= null)
+                        {
+                            foreach (var label in term.cpChildLabels) 
+                            {
+                                newTerm.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                            }
+                        }
+                        
+                        Console.WriteLine("Writing name of child term : " + term.cpChildName);
+
+                        cc.Load(newTerm);
+                        termStore.CommitAll();
+                        cc.ExecuteQuery();
+                        term.cpChildId = newTerm.Id.ToString();
                     }
                     catch (Exception e) {
                         Console.WriteLine("Failing with error : " + e.Message);

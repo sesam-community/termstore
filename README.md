@@ -15,21 +15,28 @@ password - password to be used for authenticaiton
 
 - It may seem you support other languages than 1033 (English), but when creating aliases, Termstore seems somewhat sensitive with regards to languages. Therefore you should stay with 1033 for now.
 
-## supported term dimensions
+## supported term dimensions on total # of routes
 - Termgroup
   - TermSet
     - Term
       - Childterm
 
 ## when updating terms
-- Only "Term" can be updated. The service does not currently support updating of "Childterm" after creation.
-- You have to post termCustomProperties and termLocalCustomProperties otherwise the post will fail.
+- Only "Term (aka ParentTerm)" can be updated, when using the `POST /api/termset` endpoint. Remember to provide the termId when updating a Term. In essense, this means that the endpoint does not currently support updating of "Childterms" after creation.
+- You have to provide termCustomProperties and termLocalCustomProperties in the payload when updating a Term, otherwise the Term will not be updated.
     - an empty dict works fine.
+
+## when updating child terms
+- Childterms also need the cpChildLocalCustomProperties and cpChildCustomProperties to be updated.
+- Remember to also provide the cpChildId when updating a childTerm.
 
 ### Functional endpoints
 
-`GET /api/termset` - return JSON array with all terms from default termstore  
-`POST /api/termset` - takes JSON array with terms to be created as a new term or to update an existing term.
+`GET /api/termset` - return JSON array with all properties from default termstore  
+`POST /api/termset` - takes JSON array with properties to be created as a new term or to update an existing term (created childterms on this route cannot be updated or added to the parentTerm after creation).
+
+To exclusively create or update child terms use the below route :
+`POST /api/termset/children` - takes JSON array with properties to be created as a new childterm or to update an existing childterm.
 
 Entity shape to POST terms:
 
