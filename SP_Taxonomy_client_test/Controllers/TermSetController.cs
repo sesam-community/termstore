@@ -44,6 +44,14 @@ namespace SP_Taxonomy_client_test.Controllers
         }
 
 
+        [HttpPost("child/children")]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public async Task<ActionResult<IEnumerable<childFromChildModel>>> PostChildChildTerms([FromBody] childFromChildModel[] termList) 
+        {
+            return await this._spTermsService.CreateFromChildList(termList);
+        }
+
         [HttpPost]
         [Produces("application/json")]
         [Consumes("application/json")]

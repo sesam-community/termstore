@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SP_Taxonomy_client_test.Models
 {
+    // Below class used for both getting and posting [GET] [POST] //
     public class TermModel
     {
         public string termGroupName { get; set; }
@@ -26,16 +27,31 @@ namespace SP_Taxonomy_client_test.Models
 
     }
 
+    // Below class used for getting [GET] //
     public class childModel {
         public string childName { get; set; }
         public string childId { get; set; }
         public string childDescription { get; set;}
         public int childLcid { get; set;}
+        public List<childInChildModel> childChildTerms {get; set;}
         public IDictionary<string, string> childLocalCustomProperties { get; set;}
         public IDictionary<string, string> childCustomProperties { get; set;}
         public List<ChildLabel> childLabels { get; set; }
     }
 
+    // Below class used for getting [GET] //
+    public class childInChildModel {
+        public string childChildName { get; set; }
+        public string childChildId { get; set; }
+        public string childChildDescription { get; set;}
+        public int childChildLcid { get; set;}
+
+        public IDictionary<string, string> childChildLocalCustomProperties { get; set;}
+        public IDictionary<string, string> childChildCustomProperties { get; set;}
+        public List<ChildLabel> childChildLabels { get; set; }
+    }
+
+    // Below class used for posting [POST] //
     public class childFromParentModel {
         public string cpGroupName { get; set; }
         public string cpGroupId { get; set; }
@@ -43,7 +59,6 @@ namespace SP_Taxonomy_client_test.Models
         public string cpSetId { get; set; }
         public string cpTermName { get; set; }
         public string cpTermId { get; set; }
-        //language code
         public string cpChildName { get; set; }
         public string cpChildId { get; set; }
         public string cpChildDescription { get; set;}
@@ -51,6 +66,25 @@ namespace SP_Taxonomy_client_test.Models
         public IDictionary<string, string> cpChildLocalCustomProperties { get; set;}
         public IDictionary<string, string> cpChildCustomProperties { get; set;}
         public List<ChildLabel> cpChildLabels { get; set; }
+    }
+
+    // Below class used for posting [POST] //
+    public class childFromChildModel {
+        public string cpGroupName { get; set; }
+        public string cpGroupId { get; set; }
+        public string cpSetName { get; set; }
+        public string cpSetId { get; set; }
+        public string cpTermName { get; set; }
+        public string cpTermId { get; set; }
+        public string cpChildName { get; set; }
+        public string cpChildId { get; set; }
+        public string ccpChildName { get; set; }
+        public string ccpChildId { get; set; }
+        public string ccpChildDescription { get; set;}
+        public int ccpChildLcid { get; set;}
+        public IDictionary<string, string> ccpChildLocalCustomProperties { get; set;}
+        public IDictionary<string, string> ccpChildCustomProperties { get; set;}
+        public List<ChildLabel> ccpChildLabels { get; set; }
     }
 }
 
