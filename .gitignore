@@ -341,3 +341,5 @@ healthchecksdb
 
 #launch conf
 launchSettings.json
+
+helpers.json
