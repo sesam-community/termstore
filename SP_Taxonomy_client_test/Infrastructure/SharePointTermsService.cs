@@ -362,7 +362,6 @@ namespace SP_Taxonomy_client_test.Infrastructure
         {
             TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             cc.Load(taxonomySession);
-            await cc.ExecuteQueryAsync();
 
             TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
 
@@ -575,7 +574,6 @@ namespace SP_Taxonomy_client_test.Infrastructure
         {
             TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             cc.Load(taxonomySession);
-            await cc.ExecuteQueryAsync();
 
             TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
             
@@ -700,11 +698,10 @@ namespace SP_Taxonomy_client_test.Infrastructure
         /// </summary>
         /// <param name="termList"></param>
         /// <returns></returns>
-        public async Task<ActionResult<IEnumerable<childFromChildModel>>>CreateFromChildList(childFromChildModel[]? termList)
+        public async Task<ActionResult<IEnumerable<childFromChildModel>>>CreateFromChildList(childFromChildModel[]? termList)
         {
             TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             cc.Load(taxonomySession);
-            await cc.ExecuteQueryAsync();
 
             TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
 
@@ -713,7 +710,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                 var childTerm = termStore.GetTerm(new Guid(term.cpChildId));
                 cc.Load(childTerm, set => set.Name, set => set.Terms.Include(term => term.Name));
                 await cc.ExecuteQueryAsync();
-
+                
                 byte[] bytes = Encoding.Default.GetBytes(term.ccpChildName);
                 term.ccpChildName = Encoding.UTF8.GetString(bytes).Replace('&', (char)0xff06).Replace('"', (char)0xff02);
                 
