@@ -365,13 +365,16 @@ namespace SP_Taxonomy_client_test.Infrastructure
 
             TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
 
-            //TermSet termSet = termStore.GetTermSet(new Guid());
-
-            // On refactor make this work with defined term set_ID's.
+            TermSet termSet = termStore.GetTermSet(new Guid());
 
             foreach (var term in termList)
             {
-                var termSet = termStore.GetTermSet(new Guid(term.termSetId));
+                int termSetCount = 0;
+                if (termSetCount == 0){
+                    termSet = termStore.GetTermSet(new Guid(term.termSetId));
+                    termSetCount++;
+                } 
+                
                 cc.Load(termSet, set => set.Name, set => set.Terms.Include(term => term.Name));
                 await cc.ExecuteQueryAsync();
 
@@ -579,7 +582,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
             
             foreach (var term in termList)
             {
-                var parentTerm = termStore.GetTerm(new Guid(term.cpTermId));
+                Term parentTerm = termStore.GetTerm(new Guid(term.cpTermId));
                 cc.Load(parentTerm, set => set.Name, set => set.Terms.Include(term => term.Name));
                 await cc.ExecuteQueryAsync();
 
@@ -707,7 +710,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
 
             foreach (var term in termList)
             {
-                var childTerm = termStore.GetTerm(new Guid(term.cpChildId));
+                Term childTerm = termStore.GetTerm(new Guid(term.cpChildId));
                 cc.Load(childTerm, set => set.Name, set => set.Terms.Include(term => term.Name));
                 await cc.ExecuteQueryAsync();
                 
