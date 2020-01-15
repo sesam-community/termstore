@@ -360,20 +360,23 @@ namespace SP_Taxonomy_client_test.Infrastructure
         /// <returns></returns>
         public async Task<ActionResult<IEnumerable<TermModel>>> CreateFromList(TermModel[]? termList)
         {
-            TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
+            
+            TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             cc.Load(taxonomySession);
+            cc.Load(taxonomySession.TermStores);
+            await cc.ExecuteQueryAsync();
 
-            TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
-
-            TermSet termSet = termStore.GetTermSet(new Guid());
+            TermStore termStore = taxonomySession.TermStores[0];
 
             foreach (var term in termList)
             {
-                int termSetCount = 0;
-                if (termSetCount == 0){
-                    termSet = termStore.GetTermSet(new Guid(term.termSetId));
-                    termSetCount++;
-                } 
+                TermGroup termGroup = termStore.Groups.GetByName(term.termGroupName);
+
+                cc.Load(termStore);
+                cc.Load(termGroup);
+                await cc.ExecuteQueryAsync();
+
+                TermSet termSet = termStore.GetTermSet(new Guid(term.termSetId));
                 
                 cc.Load(termSet, set => set.Name, set => set.Terms.Include(term => term.Name));
                 await cc.ExecuteQueryAsync();
@@ -577,11 +580,16 @@ namespace SP_Taxonomy_client_test.Infrastructure
         {
             TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             cc.Load(taxonomySession);
-
-            TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
+            cc.Load(taxonomySession.TermStores);
+            await cc.ExecuteQueryAsync();
             
+            TermStore termStore = taxonomySession.TermStores[0];
+
             foreach (var term in termList)
             {
+                cc.Load(termStore);
+                await cc.ExecuteQueryAsync();
+                
                 Term parentTerm = termStore.GetTerm(new Guid(term.cpTermId));
                 cc.Load(parentTerm, set => set.Name, set => set.Terms.Include(term => term.Name));
                 await cc.ExecuteQueryAsync();
@@ -705,11 +713,16 @@ namespace SP_Taxonomy_client_test.Infrastructure
         {
             TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             cc.Load(taxonomySession);
-
-            TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
+            cc.Load(taxonomySession.TermStores);
+            await cc.ExecuteQueryAsync();
+            
+            TermStore termStore = taxonomySession.TermStores[0];
 
             foreach (var term in termList)
             {
+                cc.Load(termStore);
+                await cc.ExecuteQueryAsync();
+
                 Term childTerm = termStore.GetTerm(new Guid(term.cpChildId));
                 cc.Load(childTerm, set => set.Name, set => set.Terms.Include(term => term.Name));
                 await cc.ExecuteQueryAsync();
