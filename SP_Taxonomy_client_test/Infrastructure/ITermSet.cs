@@ -12,7 +12,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
     {
         public Task<ActionResult<IEnumerable<TermModel>>> GetAllTerms();
         public Task<ActionResult<IEnumerable<TermModel>>> CreateFromList(TermModel[] termList);
+        public Task<ActionResult<IEnumerable<childFromParentModel>>> CreateFromParentList(childFromParentModel[] termList);
 
+        public Task<ActionResult<IEnumerable<childFromChildModel>>> CreateFromChildList(childFromChildModel[] termList);
         public List<TermStoreModel> GetTermStores();
         public List<TermGroupModel> GetTermStoreGroups(string id);
     }
