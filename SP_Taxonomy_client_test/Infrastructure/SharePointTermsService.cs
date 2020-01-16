@@ -451,7 +451,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     try
                     {
                         var termToUpdate = termSet.Terms.GetById(new Guid(term.termId));
-                           
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                        await cc.ExecuteQueryAsync();
+
                         if (term.termDescription != null)
                         {
                             termToUpdate.SetDescription(term.termDescription, term.termLcid);
@@ -525,6 +527,38 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                     }
                                 }
                             }
+
+                            foreach(var grandchild in child.childChildTerms)
+                            {
+                                var grandChildToUpdate = termSet.Terms.GetById(new Guid(grandchild.childChildId));
+
+                                if (grandchild.childChildLocalCustomProperties != null) 
+                                {
+                                    foreach (var customLocalProperty in  grandchild.childChildLocalCustomProperties) 
+                                    {
+                                        grandChildToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                                    }
+                                }
+
+                                if (grandchild.childChildCustomProperties != null) 
+                                {
+                                    foreach (var customProperty in grandchild.childChildCustomProperties) 
+                                    {
+                                        grandChildToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
+                                    }
+                                }
+
+                                if (grandchild.childChildLabels != null)
+                                {
+                                    foreach (var label in grandchild.childChildLabels) 
+                                    {
+                                        grandChildToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                    }
+                                }
+                          
+                                Console.WriteLine("Writing name of grandchild term : " + grandchild.childChildName);
+                            }
+
                             Console.WriteLine("Writing iteration count to check where number of children crash termstore:" + count);
                             Console.WriteLine("Writing name of child term : " + child.childName);
                             count++;
@@ -580,7 +614,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                         foreach(var child in term.termChildTerms)
                         {
                             var newChild = newTerm.CreateTerm(child.childName, child.childLcid, Guid.NewGuid());
-                            
+
                             if (child.childLocalCustomProperties != null) 
                             {
                                 foreach (var customLocalProperty in  child.childLocalCustomProperties) 
@@ -605,6 +639,36 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 }
                             }
 
+                            foreach(var grandchild in child.childChildTerms)
+                            {
+                                var newGrandChild = newChild.CreateTerm(grandchild.childChildName, grandchild.childChildLcid, Guid.NewGuid());
+
+                                if (grandchild.childChildLocalCustomProperties != null) 
+                                {
+                                    foreach (var customLocalProperty in  grandchild.childChildLocalCustomProperties) 
+                                    {
+                                        newGrandChild.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
+                                    }
+                                }
+
+                                if (grandchild.childChildCustomProperties != null) 
+                                {
+                                    foreach (var customProperty in grandchild.childChildCustomProperties) 
+                                    {
+                                        newGrandChild.SetCustomProperty(customProperty.Key, customProperty.Value);
+                                    }
+                                }
+
+                                if (grandchild.childChildLabels != null)
+                                {
+                                    foreach (var label in grandchild.childChildLabels) 
+                                    {
+                                        newGrandChild.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                    }
+                                }
+                                Console.WriteLine("Writing name of grandchild term : " + grandchild.childChildName);
+                            }
+                            
                             Console.WriteLine("Writing iteration count to check where number of children crash termstore:" + count);
                             Console.WriteLine("Writing name of child term : " + child.childName);
                             count++;
