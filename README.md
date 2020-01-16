@@ -23,6 +23,7 @@ password - password to be used for authenticaiton
         - Children of a Childterm
           - Grandchildren of a Childterm
 
+### Updating is currently deprecated (16.01.2020 - commit "minimizing memory usage")
 ## when updating terms
 - The "Term (aka ParentTerm)" can only be updated, when using the `POST /api/termset` endpoint. Remember to provide the termId when updating a Term. In essense, this means that the endpoint does not currently support updating of "Childterms" after creation.
 - You have to provide termCustomProperties and termLocalCustomProperties in the payload when updating a Term, otherwise the Term will not be updated.
