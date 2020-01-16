@@ -86,6 +86,26 @@ namespace SP_Taxonomy_client_test.Models
         public IDictionary<string, string> ccpChildCustomProperties { get; set;}
         public List<ChildLabel> ccpChildLabels { get; set; }
     }
+
+    public class childFromChildrenModel {
+        public string GroupName { get; set; }
+        public string GroupId { get; set; }
+        public string SetName { get; set; }
+        public string SetId { get; set; }
+        public string TermName { get; set; }
+        public string TermId { get; set; }
+        public string ChildName { get; set; }
+        public string ChildId { get; set; }
+        public string cpChildName { get; set; }
+        public string cpChildId { get; set; }
+        public string ccpChildName { get; set; }
+        public string ccpChildId { get; set; }
+        public string ccpChildDescription { get; set;}
+        public int ccpChildLcid { get; set;}
+        public IDictionary<string, string> ccpChildLocalCustomProperties { get; set;}
+        public IDictionary<string, string> ccpChildCustomProperties { get; set;}
+        public List<ChildLabel> ccpChildLabels { get; set; }
+    }
 }
 
 

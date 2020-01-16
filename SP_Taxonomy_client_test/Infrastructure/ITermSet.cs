@@ -15,6 +15,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
         public Task<ActionResult<IEnumerable<childFromParentModel>>> CreateFromParentList(childFromParentModel[] termList);
 
         public Task<ActionResult<IEnumerable<childFromChildModel>>> CreateFromChildList(childFromChildModel[] termList);
+
+        public Task<ActionResult<IEnumerable<childFromChildrenModel>>> CreateFromChildChildList(childFromChildrenModel[] termList);
+
         public List<TermStoreModel> GetTermStores();
         public List<TermGroupModel> GetTermStoreGroups(string id);
     }
