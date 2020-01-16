@@ -434,11 +434,6 @@ namespace SP_Taxonomy_client_test.Infrastructure
 
             foreach (var term in termList)
             {
-                TermGroup termGroup = termStore.Groups.GetByName(term.termGroupName);
-    
-                cc.Load(termGroup);
-                await cc.ExecuteQueryAsync();
-
                 TermSet termSet = termStore.GetTermSet(new Guid(term.termSetId));
                 
                 cc.Load(termSet, set => set.Name, set => set.Terms.Include(term => term.Name));
