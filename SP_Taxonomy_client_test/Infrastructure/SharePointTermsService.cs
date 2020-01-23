@@ -115,8 +115,6 @@ namespace SP_Taxonomy_client_test.Infrastructure
             List<TermModel> resultList = new List<TermModel>(32);
             TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
-            Web web = cc.Web;
-            cc.Load(web);
             await cc.ExecuteQueryAsync();
 
             this.cc.Load(termStore,
@@ -185,8 +183,6 @@ namespace SP_Taxonomy_client_test.Infrastructure
                 foreach (TermSet termSet in group.TermSets)
                 {
                     var terms = termSet.Terms;
-                    //this.cc.Load(terms);
-                    //await this.cc.ExecuteQueryAsync();
 
                     foreach (Term term in terms)
                     {
@@ -252,51 +248,41 @@ namespace SP_Taxonomy_client_test.Infrastructure
             List<childFromParentModel> resultList = new List<childFromParentModel>(32);
             TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             cc.Load(taxonomySession.TermStores);
-            TermStore termStore = taxonomySession.TermStores[0];
-            Web web = cc.Web;
-            cc.Load(web);
-        
+            TermStore termStore = taxonomySession.TermStores[0];        
             await cc.ExecuteQueryAsync();
 
-            foreach (TermGroup group in termStore.Groups)
-            {
-                foreach (TermSet termSet in group.TermSets)
-                {
-                    foreach (Term parentTerm in termSet.Terms)
-                    {
-                        var terms = parentTerm.Terms;
+            var termGroup = termStore.Groups[0];
+            var termSet = termGroup.TermSets[0];
+            var parentTerm = termSet.Terms[0];
+            var terms = parentTerm.Terms; 
                         
-                        foreach (Term term in terms)
-                        {
-                            var _term = new childFromParentModel()
-                            {
-                                cpGroupName= group.Name,
-                                cpSetName = termSet.Name,
-                                cpTermName = term.Name,
-                                cpGroupId = group.Id.ToString(),
-                                cpSetId = termSet.Id.ToString(),
-                                cpTermId = term.Id.ToString(),
-                                cpChildName = term.Name,
-                                cpChildId = term.Id.ToString(),
-                                cpChildDescription = term.Description,
-                                cpChildLocalCustomProperties = term.LocalCustomProperties,
-                                cpChildCustomProperties = term.CustomProperties,
-                                cpChildLabels = term.Labels.Select(
-                                        no => new ChildLabel {
-                                            IsDefaultForLanguage = no.IsDefaultForLanguage,
-                                            Language = no.Language,
-                                            Value = no.Value 
-                                        }
-                                    ).ToList()
-                            };
+            foreach (Term term in terms)
+            {
+                var _term = new childFromParentModel()
+                {
+                    cpGroupName=termGroup.Name,
+                            cpSetName = termSet.Name,
+                            cpTermName = term.Name,
+                            cpGroupId =termGroup.Id.ToString(),
+                            cpSetId = termSet.Id.ToString(),
+                            cpTermId = term.Id.ToString(),
+                            cpChildName = term.Name,
+                    cpChildId = term.Id.ToString(),
+                    cpChildDescription = term.Description,
+                    cpChildLocalCustomProperties = term.LocalCustomProperties,
+                    cpChildCustomProperties = term.CustomProperties,
+                    cpChildLabels = term.Labels.Select(
+                            no => new ChildLabel {
+                                IsDefaultForLanguage = no.IsDefaultForLanguage,
+                                Language = no.Language,
+                                Value = no.Value 
+                            }
+                        ).ToList()
+                        };
 
-                            resultList.Add(_term);
+                        resultList.Add(_term);
                         
-                        }
-                    }
-                    
-                }
-            }
+            }
             return resultList;
         }
 
@@ -305,54 +291,43 @@ namespace SP_Taxonomy_client_test.Infrastructure
             List<childFromChildModel> resultList = new List<childFromChildModel>(32);
             TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             cc.Load(taxonomySession.TermStores);
-            TermStore termStore = taxonomySession.TermStores[0];
-            Web web = cc.Web;
-            cc.Load(web);
-            
-        
+            TermStore termStore = taxonomySession.TermStores[0]; 
             await cc.ExecuteQueryAsync();
-
-            foreach (TermGroup group in termStore.Groups)
-            {
-                foreach (TermSet termSet in group.TermSets)
-                {
-                    foreach (Term parentTerm in termSet.Terms)
-                    {
-                        var terms = parentTerm.Terms;
+            
+            var termGroup = termStore.Groups[0];
+            var termSet = termGroup.TermSets[0];
+            var parentTerm = termSet.Terms[0];
+            var terms = parentTerm.Terms; 
                         
-                        foreach (Term term in terms)
-                        {
-                            var _term = new childFromChildModel()
-                            {
-                                cpGroupName= group.Name,
-                                cpSetName = termSet.Name,
-                                cpTermName = term.Name,
-                                cpGroupId = group.Id.ToString(),
-                                cpSetId = termSet.Id.ToString(),
-                                cpTermId = term.Id.ToString(),
-                                cpChildName = term.Name,
-                                cpChildId = term.Id.ToString(),
-                                ccpChildName = term.Name,
-                                ccpChildId = term.Id.ToString(),
-                                ccpChildDescription = term.Description,
-                                ccpChildLocalCustomProperties = term.LocalCustomProperties,
-                                ccpChildCustomProperties = term.CustomProperties,
-                                ccpChildLabels = term.Labels.Select(
-                                        no => new ChildLabel {
-                                            IsDefaultForLanguage = no.IsDefaultForLanguage,
-                                            Language = no.Language,
-                                            Value = no.Value 
-                                        }
-                                    ).ToList()
-                            };
+            foreach (Term term in terms)
+            {
+                var _term = new childFromChildModel()
+                {
+                    cpGroupName= termGroup.Name,
+                            cpSetName = termSet.Name,
+                            cpTermName = term.Name,
+                            cpGroupId = termGroup.Id.ToString(),
+                            cpSetId = termSet.Id.ToString(),
+                            cpTermId = term.Id.ToString(),
+                            cpChildName = term.Name,
+                    cpChildId = term.Id.ToString(),
+                    ccpChildName = term.Name,
+                    ccpChildId = term.Id.ToString(),
+                    ccpChildDescription = term.Description,
+                    ccpChildLocalCustomProperties = term.LocalCustomProperties,
+                    ccpChildCustomProperties = term.CustomProperties,
+                    ccpChildLabels = term.Labels.Select(
+                            no => new ChildLabel {
+                                IsDefaultForLanguage = no.IsDefaultForLanguage,
+                                Language = no.Language,
+                                Value = no.Value 
+                            }
+                        ).ToList()
+                        };
 
-                            resultList.Add(_term);
-                        
-                        }
-                    }
-                    
-                }
-            }
+                        resultList.Add(_term);
+
+            }
             return resultList;
         }
 
@@ -361,59 +336,46 @@ namespace SP_Taxonomy_client_test.Infrastructure
             List<childFromChildrenModel> resultList = new List<childFromChildrenModel>(32);
             TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
             cc.Load(taxonomySession.TermStores);
-
-            TermStore termStore = taxonomySession.TermStores[0];
-            Web web = cc.Web;
-            cc.Load(web);
-        
+            TermStore termStore = taxonomySession.TermStores[0];      
             await cc.ExecuteQueryAsync();
 
-            foreach (TermGroup group in termStore.Groups)
+            var termGroup = termStore.Groups[0];
+            var termSet = termGroup.TermSets[0];
+            var parentTerm = termSet.Terms[0];
+            var childTerm = parentTerm.Terms[0];
+            var terms = childTerm.Terms;
+
+            foreach (Term term in terms)
             {
-                foreach (TermSet termSet in group.TermSets)
-                {
-                    foreach (Term parentTerm in termSet.Terms)
-                    {   
-                        foreach (Term childterm in parentTerm.Terms)
-                        {
-                            var terms = childterm.Terms;
-
-                            foreach (Term term in terms)
-                            {
-                                var _term = new childFromChildrenModel()
-                                {
-                                
-                                GroupName= group.Name,
-                                SetName = termSet.Name,
-                                TermName = parentTerm.Name,
-                                GroupId = group.Id.ToString(),
-                                SetId = termSet.Id.ToString(),
-                                TermId = parentTerm.Id.ToString(),
-                                ChildName= childterm.Name,
-                                ChildId = childterm.Id.ToString(),
-                                cpChildName = term.Name,
-                                cpChildId = term.Id.ToString(),
-                                ccpChildName = term.Name,
-                                ccpChildId = term.Id.ToString(),
-                                ccpChildDescription = term.Description,
-                                ccpChildLocalCustomProperties = term.LocalCustomProperties,
-                                ccpChildCustomProperties = term.CustomProperties,
-                                ccpChildLabels = term.Labels.Select(
-                                        no => new ChildLabel {
-                                            IsDefaultForLanguage = no.IsDefaultForLanguage,
-                                            Language = no.Language,
-                                            Value = no.Value 
-                                        }
-                                    ).ToList()
-                            };
-
-                            resultList.Add(_term);    
+                var _term = new childFromChildrenModel()
+                {
+                
+                GroupName= termGroup.Name,
+                            SetName = termSet.Name,
+                            TermName = parentTerm.Name,
+                            GroupId = termGroup.Id.ToString(),
+                            SetId = termSet.Id.ToString(),
+                            TermId = parentTerm.Id.ToString(),
+                ChildName= childTerm.Name,
+                            ChildId = childTerm.Id.ToString(),
+                            cpChildName = term.Name,
+                cpChildId = term.Id.ToString(),
+                ccpChildName = term.Name,
+                ccpChildId = term.Id.ToString(),
+                ccpChildDescription = term.Description,
+                ccpChildLocalCustomProperties = term.LocalCustomProperties,
+                ccpChildCustomProperties = term.CustomProperties,
+                ccpChildLabels = term.Labels.Select(
+                        no => new ChildLabel {
+                            IsDefaultForLanguage = no.IsDefaultForLanguage,
+                            Language = no.Language,
+                            Value = no.Value 
                         }
-                    } 
-                }
-            }
-        }
-        return resultList;
+                    ).ToList()
+                        };
+                        resultList.Add(_term);    
+            }
+            return resultList;
         }
 
 
