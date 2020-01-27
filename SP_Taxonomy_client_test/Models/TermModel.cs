@@ -45,11 +45,36 @@ namespace SP_Taxonomy_client_test.Models
         public string childChildId { get; set; }
         public string childChildDescription { get; set;}
         public int childChildLcid { get; set;}
-
+        public List<childInChildrenModel> childInChildrenTerms {get; set;}
         public IDictionary<string, string> childChildLocalCustomProperties { get; set;}
         public IDictionary<string, string> childChildCustomProperties { get; set;}
         public List<ChildLabel> childChildLabels { get; set; }
     }
+
+    // Below class used for getting [GET] //
+    public class childInChildrenModel {
+        public string childrenChildName { get; set; }
+        public string childrenChildId { get; set; }
+        public string childrenChildDescription { get; set;}
+        public int childrenChildLcid { get; set;}
+        public List<grandchildInChildModel> childrenGrandchildTerms {get; set;}
+        public IDictionary<string, string> childrenChildLocalCustomProperties { get; set;}
+        public IDictionary<string, string> childrenChildCustomProperties { get; set;}
+        public List<ChildLabel> childrenChildLabels { get; set; }
+    }
+    
+    // Below class used for getting [GET] //
+    
+    public class grandchildInChildModel {
+        public string GrandchildName { get; set; }      
+        public string GrandchildId { get; set; }        
+        public string GrandchildDescription { get; set;}
+        public int GrandchildLcid { get; set;}
+        public IDictionary<string, string> GrandchildLocalCustomProperties { get; set;}      
+        public IDictionary<string, string> GrandchildCustomProperties { get; set;}      
+        public List<ChildLabel> GrandchildLabels { get; set; }
+    }
+
 
     // Below class used for posting [POST] //
     public class childFromParentModel {
@@ -94,6 +119,28 @@ namespace SP_Taxonomy_client_test.Models
         public string SetId { get; set; }
         public string TermName { get; set; }
         public string TermId { get; set; }
+        public string ChildName { get; set; }
+        public string ChildId { get; set; }
+        public string cpChildName { get; set; }
+        public string cpChildId { get; set; }
+        public string ccpChildName { get; set; }
+        public string ccpChildId { get; set; }
+        public string ccpChildDescription { get; set;}
+        public int ccpChildLcid { get; set;}
+        public IDictionary<string, string> ccpChildLocalCustomProperties { get; set;}
+        public IDictionary<string, string> ccpChildCustomProperties { get; set;}
+        public List<ChildLabel> ccpChildLabels { get; set; }
+    }
+
+     public class grandchildFromChildrenModel {
+        public string GroupName { get; set; }
+        public string GroupId { get; set; }
+        public string SetName { get; set; }
+        public string SetId { get; set; }
+        public string TermName { get; set; }
+        public string TermId { get; set; }
+        public string ParentchildName { get; set; }
+        public string ParentchildId { get; set; }
         public string ChildName { get; set; }
         public string ChildId { get; set; }
         public string cpChildName { get; set; }
