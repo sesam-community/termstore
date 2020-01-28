@@ -75,5 +75,13 @@ namespace SP_Taxonomy_client_test.Controllers
         {
             return await this._spTermsService.CreateFromGrandchildList(termList);
         }
+
+        [HttpPost("child/grandchildren/grandchild")]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public async Task<ActionResult<IEnumerable<grandchildFromChildChildModel>>> PostGrandChildChildTerms([FromBody] grandchildFromChildChildModel[] termList) 
+        {
+            return await this._spTermsService.CreateFromGrandchildChildList(termList);
+        }
     }
 }

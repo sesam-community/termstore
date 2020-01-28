@@ -70,11 +70,23 @@ namespace SP_Taxonomy_client_test.Models
         public string GrandchildId { get; set; }        
         public string GrandchildDescription { get; set;}
         public int GrandchildLcid { get; set;}
+        public List<grandchildInGrandchildModel> GrandChildChildTerms {get; set;}
         public IDictionary<string, string> GrandchildLocalCustomProperties { get; set;}      
         public IDictionary<string, string> GrandchildCustomProperties { get; set;}      
         public List<ChildLabel> GrandchildLabels { get; set; }
     }
 
+    // Below class used for getting [GET] //
+    
+    public class grandchildInGrandchildModel {
+        public string GrandchildChildName { get; set; }      
+        public string GrandchildChildId { get; set; }        
+        public string GrandchildChildDescription { get; set;}
+        public int GrandchildChildLcid { get; set;}
+        public IDictionary<string, string> GrandchildChildLocalCustomProperties { get; set;}      
+        public IDictionary<string, string> GrandchildChildCustomProperties { get; set;}      
+        public List<ChildLabel> GrandchildChildLabels { get; set; }
+    }
 
     // Below class used for posting [POST] //
     public class childFromParentModel {
@@ -141,6 +153,30 @@ namespace SP_Taxonomy_client_test.Models
         public string TermId { get; set; }
         public string ParentchildName { get; set; }
         public string ParentchildId { get; set; }
+        public string ChildName { get; set; }
+        public string ChildId { get; set; }
+        public string cpChildName { get; set; }
+        public string cpChildId { get; set; }
+        public string ccpChildName { get; set; }
+        public string ccpChildId { get; set; }
+        public string ccpChildDescription { get; set;}
+        public int ccpChildLcid { get; set;}
+        public IDictionary<string, string> ccpChildLocalCustomProperties { get; set;}
+        public IDictionary<string, string> ccpChildCustomProperties { get; set;}
+        public List<ChildLabel> ccpChildLabels { get; set; }
+    }
+
+    public class grandchildFromChildChildModel {
+        public string GroupName { get; set; }
+        public string GroupId { get; set; }
+        public string SetName { get; set; }
+        public string SetId { get; set; }
+        public string TermName { get; set; }
+        public string TermId { get; set; }
+        public string ParentchildName { get; set; }
+        public string ParentchildId { get; set; }
+        public string ChildchildName { get; set; }
+        public string ChildchildId { get; set; }
         public string ChildName { get; set; }
         public string ChildId { get; set; }
         public string cpChildName { get; set; }

@@ -23,6 +23,7 @@ password - password to be used for authenticaiton
         - Children of a Childterm
           - Grandchildren of a Childterm
             - GrandChildren of a grandChild
+              - GrandChild of Grandchildren
 
 ### Updating is currently deprecated (16.01.2020 - commit "minimizing memory usage")
 ## when updating terms
@@ -53,8 +54,11 @@ To create or update childs of a child term use the below route :
 To create or update childs of a child term use the below route :
 `POST /api/termset/child/child/children` - takes JSON array with properties to be created as a new child of a childterm or to update an existing child of a childterm.
 
-To create or update childs of a child term use the below route :
+To create or update childs of a grandchild term use the below route :
 `POST /api/termset/child/child/grandchild` - takes JSON array with properties to be created as a new grandchild of a childterm or to update an existing grandchild of a child term.
+
+To create or update grandchildren of a grandchild term use the below route :
+`POST /api/termset/child/grandchildren/grandchild` - takes JSON array with properties to be created as a new grandchild of a grandchild term or to update an existing grandchild of a grandchild term.
 
 Entity shape to POST terms from `POST /api/termset`:
 
