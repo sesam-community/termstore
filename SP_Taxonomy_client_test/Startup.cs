@@ -31,6 +31,7 @@ namespace SP_Taxonomy_client_test
             services.AddSingleton<ITermSet, SharePointTermsService>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
             services.AddMvc().AddNewtonsoftJson().SetCompatibilityVersion(CompatibilityVersion.Latest);
+            services.AddMvcCore().AddNewtonsoftJson();
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;

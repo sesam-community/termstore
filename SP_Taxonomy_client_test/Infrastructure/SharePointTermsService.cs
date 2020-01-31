@@ -8,8 +8,6 @@ using Microsoft.SharePoint.Administration;
 using Microsoft.SharePoint.Client.Taxonomy;
 using SP_Taxonomy_client_test.Models;
 using System;
-using System.IO;
-using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -105,217 +103,316 @@ namespace SP_Taxonomy_client_test.Infrastructure
             return resultList;
         }
 
+        public async Task<IActionResult> AllTerms([FromQuery(Name = "termstore")] string _termstore, [FromQuery(Name = "termgroup")] string _termgroup, [FromQuery(Name = "termset")] string _termset)
+        {
+            try
+            {
+                List<JObject> listTerms = new List<JObject>();
+                TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
+                var termStores = taxonomySession.TermStores;
+                TermStore termStore = termStores.GetById(new Guid(_termstore));
+                var termGroups = termStore.Groups;
+                var termGroup = termGroups.GetByName(_termgroup);
+                var termSets = termGroup.TermSets;
+                cc.Load(termGroup, 
+                    group   => group.Id,
+                    group   => group.Name,
+                    group   => group.TermSets.Include(
+                        termset => termset.Id,
+                        termset => termset.Name,
+                        termset => termset.Terms.Include(
+                            term => term.Name,
+                            term => term.Description,
+                            term => term.Id,
+                            term => term.Labels,
+                            term => term.Terms.Include(
+                                childTerm => childTerm.Id,
+                                childTerm => childTerm.Name,
+                                childTerm => childTerm.Description,
+                                childTerm => childTerm.Labels
+                            )
+                    )
+                    ));
+                await cc.ExecuteQueryAsync();
+                for (int i = 0; i < termSets.Count; i++)
+                {
+                    if (termSets[i].Name.Equals(_termset))
+                    {
+                        TermSet termSet = termSets[i];
+                        var terms = termSet.Terms;
+                        foreach (var term in terms)
+                        {
+                            var json = new JObject();
+                            json.Add(new JProperty("termSetId", termSet.Id));
+                            json.Add(new JProperty("termSetName", termSet.Name));
+                            json.Add(new JProperty("termGroup", termGroup.Name));
+                            json.Add(new JProperty("termGroupId", termGroup.Id));
+                            json.Add(new JProperty("termId", term.Id));
+                            json.Add(new JProperty("termName", term.Name));
+                            json.Add(new JProperty("termDescription", term.Description));
+                            var labels = term.Labels;
+                            var jsonLabels = new JArray();
+                            foreach (var label in labels)
+                            {
+                                var jsonChild = new JObject();
+                                jsonChild.Add(new JProperty("isDefaultForLanguage", label.IsDefaultForLanguage));
+                                jsonChild.Add(new JProperty("language", label.Language));
+                                jsonChild.Add(new JProperty("value", label.Value));
+                                jsonLabels.Add(new JObject(jsonChild));
+                            }
+                            json.Add(new JProperty("termLabels", jsonLabels));   
+                            var jsonChildTerms = new JArray();
+                            var childTerms = term.Terms;
+                            foreach (var childTerm in childTerms)
+                            {
+                                var jsonChildTerm = new JObject();
+                                jsonChildTerm.Add(new JProperty("childTermId", childTerm.Id));
+                                jsonChildTerm.Add(new JProperty("childTermName", childTerm.Name));
+                                jsonChildTerm.Add(new JProperty("childTermDescription", childTerm.Description));
+                                var childTermLabels = childTerm.Labels;
+                                var childTermLabelArray = new JArray();
+                                foreach (var childTermLabel in childTermLabels)
+                                {
+                                    var jsonChild = new JObject();
+                                    jsonChild.Add(new JProperty("isDefaultForLanguage", childTermLabel.IsDefaultForLanguage));
+                                    jsonChild.Add(new JProperty("language", childTermLabel.Language));
+                                    jsonChild.Add(new JProperty("value", childTermLabel.Value));
+                                    childTermLabelArray.Add(new JObject(jsonChild));
+                                }
+                                jsonChildTerm.Add(new JProperty("childTermLabels", childTermLabelArray));
+                                jsonChildTerms.Add(new JObject(jsonChildTerm));
+                            }        
+                            json.Add(new JProperty("childTerms", jsonChildTerms));             
+                            listTerms.Add(json);
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                return new OkObjectResult(listTerms);
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+        }
+        
+
         /// <summary>
         /// Fetch all terms from Sharepoint terms store
         /// Terms include some info about their TermSet and TermGroup as well as their own info
         /// </summary>
         /// <returns></returns>
-        public async Task<ActionResult<IEnumerable<TermModel>>> GetAllTerms()
+        public async Task<ActionResult<IEnumerable<TermModel>>> GetAllTerms([FromQuery(Name = "termset")] string _termset)
         {
             List<TermModel> resultList = new List<TermModel>(32);
-            TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);
-            TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
+            TaxonomySession taxonomySession = TaxonomySession.GetTaxonomySession(cc);       
+            TermStore termStore = taxonomySession.GetDefaultSiteCollectionTermStore();
             await cc.ExecuteQueryAsync();
-
-            this.cc.Load(termStore,
-                    store => store.Name,
-                    store => store.Groups.Include(
-                        group => group.Name,
-                        group => group.LastModifiedDate,
-                        group => group.CreatedDate,
-                        group => group.Description,
-                        group => group.Id,
-                        group => group.TermSets.Include(
-                            set => set.Name,
-                            set => set.Description,
-                            set => set.Id,
-                            set => set.Contact,
-                            set => set.CustomProperties,
-                            set => set.IsAvailableForTagging,
-                            set => set.IsOpenForTermCreation,
-                            set => set.CustomProperties,
-                            set => set.Terms.Include(
-                                term => term.Name,
-                                term => term.Description,
-                                term => term.Id,
-                                term => term.IsAvailableForTagging,
-                                term => term.LocalCustomProperties,
-                                term => term.CustomProperties,
-                                term => term.IsDeprecated,
-                                term => term.Labels.Include(
-                                    label => label.Value,
-                                    label => label.Language,
-                                    label => label.IsDefaultForLanguage),
-                                term  => term.Terms.Include(
-                                    term => term.Name,
-                                    term => term.Description,
-                                    term => term.Id,
-                                    term => term.LocalCustomProperties,
-                                    term => term.CustomProperties,
-                                    term=> term.Labels.Include(
-                                            label => label.Value,
-                                            label => label.Language,
-                                            label => label.IsDefaultForLanguage),
-                                    term => term.Terms.Include(
+            try {
+                this.cc.Load(termStore,
+                            store => store.Name,
+                            store => store.Groups.Include(
+                                group => group.Name,
+                                group => group.LastModifiedDate,
+                                group => group.CreatedDate,
+                                group => group.Description,
+                                group => group.Id,
+                                group => group.TermSets.Include(
+                                    set => set.Name,
+                                    set => set.Description,
+                                    set => set.Id,
+                                    set => set.Contact,
+                                    set => set.CustomProperties,
+                                    set => set.IsAvailableForTagging,
+                                    set => set.IsOpenForTermCreation,
+                                    set => set.CustomProperties,
+                                    set => set.Terms.Include(
+                                        term => term.Name,
+                                        term => term.Description,
+                                        term => term.Id,
+                                        term => term.IsAvailableForTagging,
+                                        term => term.LocalCustomProperties,
+                                        term => term.CustomProperties,
+                                        term => term.IsDeprecated,
+                                        term => term.Labels,
+                                    term  => term.Terms.Include(
                                         term => term.Name,
                                         term => term.Description,
-                                        term=> term.Id,
-                                        term=> term.LocalCustomProperties,
-                                        term=> term.CustomProperties,
-                                        term => term.Labels.Include(
-                                            label => label.Value,
-                                            label => label.Language,
-                                            label => label.IsDefaultForLanguage),
+                                        term => term.Id,
+                                        term => term.LocalCustomProperties,
+                                        term => term.CustomProperties,
+                                        term=> term.Labels,
                                         term => term.Terms.Include(
                                             term => term.Name,
                                             term => term.Description,
                                             term=> term.Id,
                                             term=> term.LocalCustomProperties,
-                                            term=> term.CustomProperties,
-                                            term=> term.Labels.Include(
-                                                label => label.Value,
-                                                label => label.Language,
-                                                label => label.IsDefaultForLanguage),
+                                            term=> term.CustomProperties,
+                                            term => term.Labels,
                                             term => term.Terms.Include(
                                                 term => term.Name,
                                                 term => term.Description,
                                                 term=> term.Id,
                                                 term=> term.LocalCustomProperties,
                                                 term=> term.CustomProperties,
-                                                term=> term.Labels.Include(
-                                                    label => label.Value,
-                                                    label => label.Language,
-                                                    label => label.IsDefaultForLanguage),
+                                                term=> term.Labels,
                                                 term => term.Terms.Include(
                                                     term => term.Name,
                                                     term => term.Description,
                                                     term=> term.Id,
                                                     term=> term.LocalCustomProperties,
                                                     term=> term.CustomProperties,
-                                                    term=> term.Labels.Include(
-                                                        label => label.Value,
-                                                        label => label.Language,
-                                                        label => label.IsDefaultForLanguage)
-                                                )
-                                            
+                                                    term=> term.Labels,
+                                                    term => term.Terms.Include(
+                                                        term => term.Name,
+                                                        term => term.Description,
+                                                        term=> term.Id,
+                                                        term=> term.LocalCustomProperties,
+                                                        term=> term.CustomProperties,
+                                                        term=> term.Labels
+                                                    )
+                                                
+                                            )
                                         )
                                     )
                                 )
-                            )
-                        )
-                    )
-                )
-            );
-            await this.cc.ExecuteQueryAsync();
+                            )
+                        )
+                    )
+                );
+            await this.cc.ExecuteQueryAsync();
+            }
+            
+            catch (Exception e) {
+                Console.WriteLine("Failing in load with error :" + e);
+            }
+            
+            //if (taxonomySession == null || termStore == null)
+            //{
+            //    return resultList;
+            //}
 
-            if (taxonomySession == null || termStore == null)
-            {
-                return resultList;
-            }
+            var termGroups = termStore.Groups;
+            var termGroup = termGroups.GetByName(_termset);
+            
+            try
+            {
+                foreach (TermGroup group in termStore.Groups)
+                {
+                    if (group.Name == _termset)
+                    {
+                        foreach (TermSet termSet in group.TermSets)
+                        {
+                            var terms = termSet.Terms;
 
-            foreach (TermGroup group in termStore.Groups)
-            {
-                foreach (TermSet termSet in group.TermSets)
-                {
-                    var terms = termSet.Terms;
-
-                    foreach (Term term in terms)
-                    {
-                        var _term = new TermModel
-                        {
-                            termGroupName = group.Name,
-                            termSetName = termSet.Name,
-                            termName = term.Name,
-                            termGroupId = group.Id.ToString(),
-                            termSetId = termSet.Id.ToString(),
-                            termId = term.Id.ToString(),
-                            termDescription = term.Description,
-                            termIsAvailableForTagging = term.IsAvailableForTagging,
-                            termLocalCustomProperties = term.LocalCustomProperties,
-                            termCustomProperties = term.CustomProperties,
-                            termChildTerms = term.Terms.Select(dk => new childModel {
-                                childName = dk.Name,
-                                childDescription = dk.Description,
-                                childLocalCustomProperties = dk.LocalCustomProperties,
-                                childCustomProperties = dk.CustomProperties,
-                                childId = dk.Id.ToString(),
-                                childLabels = dk.Labels.Select(
-                                    no => new ChildLabel {
-                                        IsDefaultForLanguage = no.IsDefaultForLanguage,
-                                        Language = no.Language,
-                                        Value = no.Value 
-                                    }
-                                ).ToList(),
-                                childChildTerms = dk.Terms.Select(se => new childInChildModel {
-                                    childChildName = se.Name,
-                                    childChildDescription = se.Description,
-                                    childChildLocalCustomProperties = se.LocalCustomProperties,
-                                    childChildCustomProperties = se.CustomProperties,
-                                    childChildId = se.Id.ToString(),
-                                    childChildLabels = se.Labels.Select(
-                                        i => new ChildLabel {
-                                            IsDefaultForLanguage = i.IsDefaultForLanguage,
-                                            Language = i.Language,
-                                            Value = i.Value 
-                                        }
-                                    ).ToList(),
-                                    childInChildrenTerms = se.Terms.Select(no4life => new childInChildrenModel {
-                                        childrenChildName = no4life.Name,
-                                        childrenChildDescription = no4life.Description,
-                                        childrenChildLocalCustomProperties = no4life.LocalCustomProperties,
-                                        childrenChildCustomProperties = no4life.CustomProperties,
-                                        childrenChildId = no4life.Id.ToString(),
-                                        childrenChildLabels = no4life.Labels.Select(
-                                            i => new ChildLabel {
-                                                IsDefaultForLanguage = i.IsDefaultForLanguage,
-                                                Language = i.Language,
-                                                Value = i.Value 
+                            foreach (Term term in terms)
+                            {
+                                var _term = new TermModel
+                                {
+                                    termGroupName = group.Name,
+                                    termSetName = termSet.Name,
+                                    termName = term.Name,
+                                    termGroupId = group.Id.ToString(),
+                                    termSetId = termSet.Id.ToString(),
+                                    termId = term.Id.ToString(),
+                                    termDescription = term.Description,
+                                    termIsAvailableForTagging = term.IsAvailableForTagging,
+                                    termLocalCustomProperties = term.LocalCustomProperties,
+                                    termCustomProperties = term.CustomProperties,
+                                    termChildTerms = term.Terms.Select(dk => new childModel {
+                                        childName = dk.Name,
+                                        childDescription = dk.Description,
+                                        childLocalCustomProperties = dk.LocalCustomProperties,
+                                        childCustomProperties = dk.CustomProperties,
+                                        childId = dk.Id.ToString(),
+                                        childLabels = dk.Labels.Select(
+                                            no => new ChildLabel {
+                                                IsDefaultForLanguage = no.IsDefaultForLanguage,
+                                                Language = no.Language,
+                                                Value = no.Value 
                                             }
                                         ).ToList(),
-                                        childrenGrandchildTerms = no4life.Terms.Select(dk4life => new grandchildInChildModel {
-                                            GrandchildName = dk4life.Name,
-                                            GrandchildDescription = dk4life.Description,
-                                            GrandchildLocalCustomProperties = dk4life.LocalCustomProperties,
-                                            GrandchildCustomProperties = dk4life.CustomProperties,
-                                            GrandchildId = dk4life.Id.ToString(),
-                                            GrandchildLabels = dk4life.Labels.Select(
+                                        childChildTerms = dk.Terms.Select(se => new childInChildModel {
+                                            childChildName = se.Name,
+                                            childChildDescription = se.Description,
+                                            childChildLocalCustomProperties = se.LocalCustomProperties,
+                                            childChildCustomProperties = se.CustomProperties,
+                                            childChildId = se.Id.ToString(),
+                                            childChildLabels = se.Labels.Select(
                                                 i => new ChildLabel {
                                                     IsDefaultForLanguage = i.IsDefaultForLanguage,
                                                     Language = i.Language,
                                                     Value = i.Value 
                                                 }
                                             ).ToList(),
-                                            GrandChildChildTerms = dk4life.Terms.Select(se4life => new grandchildInGrandchildModel {
-                                                GrandchildChildName = se4life.Name,
-                                                GrandchildChildDescription = se4life.Description,
-                                                GrandchildChildLocalCustomProperties = se4life.LocalCustomProperties,
-                                                GrandchildChildCustomProperties = se4life.CustomProperties,
-                                                GrandchildChildId = se4life.Id.ToString(),
-                                                GrandchildChildLabels = se4life.Labels.Select(
+                                            childInChildrenTerms = se.Terms.Select(no4life => new childInChildrenModel {
+                                                childrenChildName = no4life.Name,
+                                                childrenChildDescription = no4life.Description,
+                                                childrenChildLocalCustomProperties = no4life.LocalCustomProperties,
+                                                childrenChildCustomProperties = no4life.CustomProperties,
+                                                childrenChildId = no4life.Id.ToString(),
+                                                childrenChildLabels = no4life.Labels.Select(
                                                     i => new ChildLabel {
                                                         IsDefaultForLanguage = i.IsDefaultForLanguage,
                                                         Language = i.Language,
                                                         Value = i.Value 
                                                     }
-                                                ).ToList()
-                                            }).ToList(),
-                                        }).ToList(),
-                                    }).ToList(),           
-                                }).ToList(),    
-                            }).ToList(),
-                            termIsDeprecated = term.IsDeprecated,
-                            termLabels = term.Labels.Select(
-                                x => new TermLabel {
-                                    IsDefaultForLanguage = x.IsDefaultForLanguage,
-                                    Language = x.Language,
-                                    Value = x.Value }
-                                ).ToList()
-                        };
+                                                ).ToList(),
+                                                childrenGrandchildTerms = no4life.Terms.Select(dk4life => new grandchildInChildModel {
+                                                    GrandchildName = dk4life.Name,
+                                                    GrandchildDescription = dk4life.Description,
+                                                    GrandchildLocalCustomProperties = dk4life.LocalCustomProperties,
+                                                    GrandchildCustomProperties = dk4life.CustomProperties,
+                                                    GrandchildId = dk4life.Id.ToString(),
+                                                    GrandchildLabels = dk4life.Labels.Select(
+                                                        i => new ChildLabel {
+                                                            IsDefaultForLanguage = i.IsDefaultForLanguage,
+                                                            Language = i.Language,
+                                                            Value = i.Value 
+                                                        }
+                                                    ).ToList(),
+                                                    GrandChildChildTerms = dk4life.Terms.Select(se4life => new grandchildInGrandchildModel {
+                                                        GrandchildChildName = se4life.Name,
+                                                        GrandchildChildDescription = se4life.Description,
+                                                        GrandchildChildLocalCustomProperties = se4life.LocalCustomProperties,
+                                                        GrandchildChildCustomProperties = se4life.CustomProperties,
+                                                        GrandchildChildId = se4life.Id.ToString(),
+                                                        GrandchildChildLabels = se4life.Labels.Select(
+                                                            i => new ChildLabel {
+                                                                IsDefaultForLanguage = i.IsDefaultForLanguage,
+                                                                Language = i.Language,
+                                                                Value = i.Value 
+                                                            }
+                                                        ).ToList()
+                                                    }).ToList(),
+                                                }).ToList(),
+                                            }).ToList(),           
+                                        }).ToList(),    
+                                    }).ToList(),
+                                    termIsDeprecated = term.IsDeprecated,
+                                    termLabels = term.Labels.Select(
+                                        x => new TermLabel {
+                                            IsDefaultForLanguage = x.IsDefaultForLanguage,
+                                            Language = x.Language,
+                                            Value = x.Value }
+                                        ).ToList()
+                                };
 
-                        resultList.Add(_term);
-                    }
-                }
-            }
+                                resultList.Add(_term);
+                            }
+                        }
+                    }    
+
+                }
+   
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failing in model mapping with error :" + e);
+            }
 
             return resultList;
         }

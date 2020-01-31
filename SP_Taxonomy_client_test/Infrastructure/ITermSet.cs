@@ -10,7 +10,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
 {
     public interface ITermSet
     {
-        public Task<ActionResult<IEnumerable<TermModel>>> GetAllTerms();
+        public Task<ActionResult<IEnumerable<TermModel>>> GetAllTerms(string _termset);
+        public Task<IActionResult> AllTerms(string _termstore, string _termgroup, string _termset);
         public Task<ActionResult<IEnumerable<TermModel>>> CreateFromList(TermModel[] termList);
         public Task<ActionResult<IEnumerable<childFromParentModel>>> CreateFromParentList(childFromParentModel[] termList);
 

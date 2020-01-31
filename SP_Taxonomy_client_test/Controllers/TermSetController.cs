@@ -29,11 +29,18 @@ namespace SP_Taxonomy_client_test.Controllers
         // GET api/termset
         [HttpGet]
         [Produces("application/json")]
-        public async Task<ActionResult<IEnumerable<TermModel>>> GetTerms()
+        public async Task<ActionResult<IEnumerable<TermModel>>> GetTerms([FromQuery(Name = "termset")] string _termset)
         {
-            return await this._spTermsService.GetAllTerms();
+            return await this._spTermsService.GetAllTerms(_termset);
         }
 
+        // GET api/termset d
+        [HttpGet("terms")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetAllTerms([FromQuery(Name = "termstore")] string _termstore, [FromQuery(Name = "termgroup")] string _termgroup, [FromQuery(Name = "termset")] string _termset)
+        {
+            return await this._spTermsService.AllTerms(_termstore, _termgroup, _termset);
+        }
 
         [HttpPost("children")]
         [Produces("application/json")]
