@@ -27,7 +27,8 @@ password - password to be used for authenticaiton
 
 ## when updating terms
 - Updating terms support deprecation now
-- Updating of labels need to be verified
+- Updating of labels is supported now.
+  - Updating of labels can only write new labels, you cannot delete old labels. 
 
 ### Functional endpoints
 
