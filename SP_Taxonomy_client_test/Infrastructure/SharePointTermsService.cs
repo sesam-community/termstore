@@ -231,6 +231,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                     set => set.CustomProperties,
                                     set => set.Terms.Include(
                                         term => term.Name,
+                                        term => term.IsDeprecated,
                                         term => term.Description,
                                         term => term.Id,
                                         term => term.IsAvailableForTagging,
@@ -240,6 +241,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                         term => term.Labels,
                                     term  => term.Terms.Include(
                                         term => term.Name,
+                                        term => term.IsDeprecated,
                                         term => term.Description,
                                         term => term.Id,
                                         term => term.LocalCustomProperties,
@@ -247,6 +249,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                         term=> term.Labels,
                                         term => term.Terms.Include(
                                             term => term.Name,
+                                            term => term.IsDeprecated,
                                             term => term.Description,
                                             term=> term.Id,
                                             term=> term.LocalCustomProperties,
@@ -254,6 +257,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                             term => term.Labels,
                                             term => term.Terms.Include(
                                                 term => term.Name,
+                                                term => term.IsDeprecated,
                                                 term => term.Description,
                                                 term=> term.Id,
                                                 term=> term.LocalCustomProperties,
@@ -261,6 +265,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                                 term=> term.Labels,
                                                 term => term.Terms.Include(
                                                     term => term.Name,
+                                                    term => term.IsDeprecated,
                                                     term => term.Description,
                                                     term=> term.Id,
                                                     term=> term.LocalCustomProperties,
@@ -268,6 +273,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                                     term=> term.Labels,
                                                     term => term.Terms.Include(
                                                         term => term.Name,
+                                                        term => term.IsDeprecated,
                                                         term => term.Description,
                                                         term=> term.Id,
                                                         term=> term.LocalCustomProperties,
@@ -319,12 +325,14 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                     termSetId = termSet.Id.ToString(),
                                     termId = term.Id.ToString(),
                                     termDescription = term.Description,
+                                    termIsDeprecated = term.IsDeprecated, 
                                     termIsAvailableForTagging = term.IsAvailableForTagging,
                                     termLocalCustomProperties = term.LocalCustomProperties,
                                     termCustomProperties = term.CustomProperties,
                                     termChildTerms = term.Terms.Select(dk => new childModel {
                                         childName = dk.Name,
                                         childDescription = dk.Description,
+                                        childIsDeprecated = dk.IsDeprecated, 
                                         childLocalCustomProperties = dk.LocalCustomProperties,
                                         childCustomProperties = dk.CustomProperties,
                                         childId = dk.Id.ToString(),
@@ -338,6 +346,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                         childChildTerms = dk.Terms.Select(se => new childInChildModel {
                                             childChildName = se.Name,
                                             childChildDescription = se.Description,
+                                            childChildIsDeprecated = se.IsDeprecated,
                                             childChildLocalCustomProperties = se.LocalCustomProperties,
                                             childChildCustomProperties = se.CustomProperties,
                                             childChildId = se.Id.ToString(),
@@ -351,6 +360,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                             childInChildrenTerms = se.Terms.Select(no4life => new childInChildrenModel {
                                                 childrenChildName = no4life.Name,
                                                 childrenChildDescription = no4life.Description,
+                                                childrenChildIsDeprecated = no4life.IsDeprecated,
                                                 childrenChildLocalCustomProperties = no4life.LocalCustomProperties,
                                                 childrenChildCustomProperties = no4life.CustomProperties,
                                                 childrenChildId = no4life.Id.ToString(),
@@ -364,6 +374,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                                 childrenGrandchildTerms = no4life.Terms.Select(dk4life => new grandchildInChildModel {
                                                     GrandchildName = dk4life.Name,
                                                     GrandchildDescription = dk4life.Description,
+                                                    GrandchildIsDeprecated = dk4life.IsDeprecated,
                                                     GrandchildLocalCustomProperties = dk4life.LocalCustomProperties,
                                                     GrandchildCustomProperties = dk4life.CustomProperties,
                                                     GrandchildId = dk4life.Id.ToString(),
@@ -377,6 +388,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                                     GrandChildChildTerms = dk4life.Terms.Select(se4life => new grandchildInGrandchildModel {
                                                         GrandchildChildName = se4life.Name,
                                                         GrandchildChildDescription = se4life.Description,
+                                                        GrandchildChildIsDeprecated = se4life.IsDeprecated,
                                                         GrandchildChildLocalCustomProperties = se4life.LocalCustomProperties,
                                                         GrandchildChildCustomProperties = se4life.CustomProperties,
                                                         GrandchildChildId = se4life.Id.ToString(),
@@ -392,7 +404,6 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                             }).ToList(),           
                                         }).ToList(),    
                                     }).ToList(),
-                                    termIsDeprecated = term.IsDeprecated,
                                     termLabels = term.Labels.Select(
                                         x => new TermLabel {
                                             IsDefaultForLanguage = x.IsDefaultForLanguage,
@@ -435,13 +446,14 @@ namespace SP_Taxonomy_client_test.Infrastructure
                 var _term = new childFromParentModel()
                 {
                     cpGroupName=termGroup.Name,
-                            cpSetName = termSet.Name,
-                            cpTermName = term.Name,
-                            cpGroupId =termGroup.Id.ToString(),
-                            cpSetId = termSet.Id.ToString(),
-                            cpTermId = term.Id.ToString(),
-                            cpChildName = term.Name,
+                    cpSetName = termSet.Name,
+                    cpTermName = term.Name,
+                    cpGroupId =termGroup.Id.ToString(),
+                    cpSetId = termSet.Id.ToString(),
+                    cpTermId = term.Id.ToString(),
+                    cpChildName = term.Name,
                     cpChildId = term.Id.ToString(),
+                    cpChildIsDeprecated = term.IsDeprecated,
                     cpChildDescription = term.Description,
                     cpChildLocalCustomProperties = term.LocalCustomProperties,
                     cpChildCustomProperties = term.CustomProperties,
@@ -487,6 +499,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     cpChildId = term.Id.ToString(),
                     ccpChildName = term.Name,
                     ccpChildId = term.Id.ToString(),
+                    ccpChildIsDeprecated = term.IsDeprecated,
                     ccpChildDescription = term.Description,
                     ccpChildLocalCustomProperties = term.LocalCustomProperties,
                     ccpChildCustomProperties = term.CustomProperties,
@@ -536,6 +549,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                 cpChildId = term.Id.ToString(),
                 ccpChildName = term.Name,
                 ccpChildId = term.Id.ToString(),
+                ccpChildIsDeprecated = term.IsDeprecated,
                 ccpChildDescription = term.Description,
                 ccpChildLocalCustomProperties = term.LocalCustomProperties,
                 ccpChildCustomProperties = term.CustomProperties,
@@ -587,29 +601,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     try
                     {
                         var termToUpdate = termSet.Terms.GetById(new Guid(term.termId));
-                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
                         await cc.ExecuteQueryAsync();
 
-                        if (term.termDescription != null)
-                        {
-                            termToUpdate.SetDescription(term.termDescription, term.termLcid);
-                        }
-
-                        if (term.termLocalCustomProperties != null) 
-                        {
-                            foreach (var customLocalProperty in term.termLocalCustomProperties) 
-                            {
-                                termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                            }
-                        }
-                        if (term.termCustomProperties != null) 
-                        {
-                            foreach (var customProperty in term.termCustomProperties) 
-                            {
-                                termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
-                            }
-                        }
-                        
                         if (term.termLabels != null)
                         {
                             foreach (var label in term.termLabels)
@@ -624,33 +618,19 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 }
                             }
                         }
-                        
+
+                        termToUpdate.Deprecate(term.termIsDeprecated);
+                                  
                         Console.WriteLine("---------------------------------------------------------");
                         Console.WriteLine("Writing name of parent term : " + term.termName);
                         Console.WriteLine("---------------------------------------------------------");
                         var count = 1;
                         foreach(var child in term.termChildTerms)
                         {
-                            var childToUpdate = termToUpdate.CreateTerm(child.childName, child.childLcid, Guid.NewGuid());
+                            var childToUpdate = termToUpdate.Terms.GetById(new Guid(child.childId));
                             
-                            cc.Load(childToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value));
+                            cc.Load(childToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
                             await cc.ExecuteQueryAsync();
-
-                            if (child.childLocalCustomProperties != null) 
-                            {
-                                foreach (var customLocalProperty in child.childLocalCustomProperties) 
-                                {
-                                    childToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                                }
-                            }
-                            
-                            if (child.childCustomProperties != null) 
-                            {
-                                foreach (var customProperty in child.childCustomProperties) 
-                                {
-                                    childToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
-                                }
-                            }
 
                             if (child.childLabels != null)
                             {
@@ -667,25 +647,14 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 }
                             }
 
+                            childToUpdate.Deprecate(child.childIsDeprecated);
+
                             foreach(var grandchild in child.childChildTerms)
                             {
-                                var grandChildToUpdate = childToUpdate.CreateTerm(grandchild.childChildName, grandchild.childChildLcid, Guid.NewGuid());
+                                var grandChildToUpdate = childToUpdate.Terms.GetById(new Guid(grandchild.childChildId));
 
-                                if (grandchild.childChildLocalCustomProperties != null) 
-                                {
-                                    foreach (var customLocalProperty in  grandchild.childChildLocalCustomProperties) 
-                                    {
-                                        grandChildToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                                    }
-                                }
-
-                                if (grandchild.childChildCustomProperties != null) 
-                                {
-                                    foreach (var customProperty in grandchild.childChildCustomProperties) 
-                                    {
-                                        grandChildToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
-                                    }
-                                }
+                                cc.Load(grandChildToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                                await cc.ExecuteQueryAsync();
 
                                 if (grandchild.childChildLabels != null)
                                 {
@@ -694,6 +663,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                         grandChildToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
                                     }
                                 }
+
+                                grandChildToUpdate.Deprecate(grandchild.childChildIsDeprecated);
                           
                                 Console.WriteLine("Writing name of grandchild term : " + grandchild.childChildName);
                             }
@@ -795,26 +766,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     try
                     {
                         var termToUpdate = parentTerm.Terms.GetById(new Guid(term.cpChildId));
-                   
-                        if (term.cpChildDescription != null)
-                        {
-                            termToUpdate.SetDescription(term.cpChildDescription, term.cpChildLcid);
-                        }
-
-                        if (term.cpChildLocalCustomProperties != null) 
-                        {
-                            foreach (var customLocalProperty in term.cpChildLocalCustomProperties) 
-                            {
-                                termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                            }
-                        }
-                        if (term.cpChildCustomProperties != null) 
-                        {
-                            foreach (var customProperty in term.cpChildCustomProperties) 
-                            {
-                                termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
-                            }
-                        }
+                        
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        await cc.ExecuteQueryAsync();
                         
                         if (term.cpChildLabels != null)
                         {
@@ -830,6 +784,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 }
                             }
                         }
+
+                        termToUpdate.Deprecate(term.cpChildIsDeprecated);
                         
                         Console.WriteLine("Writing name of child term : " + term.cpChildName);
                         termStore.CommitAll();
@@ -919,25 +875,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     try
                     {
                         var termToUpdate = childTerm.Terms.GetById(new Guid(term.ccpChildId));                           
-                        if (term.ccpChildDescription != null)
-                        {
-                            termToUpdate.SetDescription(term.ccpChildDescription, term.ccpChildLcid);
-                        }
-
-                        if (term.ccpChildLocalCustomProperties != null) 
-                        {
-                            foreach (var customLocalProperty in term.ccpChildLocalCustomProperties) 
-                            {
-                                termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                            }
-                        }
-                        if (term.ccpChildCustomProperties != null) 
-                        {
-                            foreach (var customProperty in term.ccpChildCustomProperties) 
-                            {
-                                termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
-                            }
-                        }
+                        
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        await cc.ExecuteQueryAsync();
                         
                         if (term.ccpChildLabels != null)
                         {
@@ -954,6 +894,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             }
                         }
                         
+                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
+
                         Console.WriteLine("Writing name of child term : " + term.ccpChildName);
                         termStore.CommitAll();
                         cc.ExecuteQuery();
@@ -1041,25 +983,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     try
                     {
                         var termToUpdate = childTerm.Terms.GetById(new Guid(term.ccpChildId));                           
-                        if (term.ccpChildDescription != null)
-                        {
-                            termToUpdate.SetDescription(term.ccpChildDescription, term.ccpChildLcid);
-                        }
-
-                        if (term.ccpChildLocalCustomProperties != null) 
-                        {
-                            foreach (var customLocalProperty in term.ccpChildLocalCustomProperties) 
-                            {
-                                termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                            }
-                        }
-                        if (term.ccpChildCustomProperties != null) 
-                        {
-                            foreach (var customProperty in term.ccpChildCustomProperties) 
-                            {
-                                termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
-                            }
-                        }
+                        
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        await cc.ExecuteQueryAsync();
                         
                         if (term.ccpChildLabels != null)
                         {
@@ -1075,6 +1001,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 }
                             }
                         }
+
+                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
                         
                         Console.WriteLine("Writing name of child term : " + term.ccpChildName);
                         termStore.CommitAll();
@@ -1158,25 +1086,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     try
                     {
                         var termToUpdate = childTerm.Terms.GetById(new Guid(term.ccpChildId));                           
-                        if (term.ccpChildDescription != null)
-                        {
-                            termToUpdate.SetDescription(term.ccpChildDescription, term.ccpChildLcid);
-                        }
-
-                        if (term.ccpChildLocalCustomProperties != null) 
-                        {
-                            foreach (var customLocalProperty in term.ccpChildLocalCustomProperties) 
-                            {
-                                termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                            }
-                        }
-                        if (term.ccpChildCustomProperties != null) 
-                        {
-                            foreach (var customProperty in term.ccpChildCustomProperties) 
-                            {
-                                termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
-                            }
-                        }
+                        
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        await cc.ExecuteQueryAsync();
                         
                         if (term.ccpChildLabels != null)
                         {
@@ -1192,6 +1104,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 }
                             }
                         }
+
+                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
                         
                         Console.WriteLine("Writing name of child term : " + term.ccpChildName);
                         termStore.CommitAll();
@@ -1275,25 +1189,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     try
                     {
                         var termToUpdate = childTerm.Terms.GetById(new Guid(term.ccpChildId));                           
-                        if (term.ccpChildDescription != null)
-                        {
-                            termToUpdate.SetDescription(term.ccpChildDescription, term.ccpChildLcid);
-                        }
-
-                        if (term.ccpChildLocalCustomProperties != null) 
-                        {
-                            foreach (var customLocalProperty in term.ccpChildLocalCustomProperties) 
-                            {
-                                termToUpdate.SetLocalCustomProperty(customLocalProperty.Key, customLocalProperty.Value);
-                            }
-                        }
-                        if (term.ccpChildCustomProperties != null) 
-                        {
-                            foreach (var customProperty in term.ccpChildCustomProperties) 
-                            {
-                                termToUpdate.SetCustomProperty(customProperty.Key, customProperty.Value);
-                            }
-                        }
+                        
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        await cc.ExecuteQueryAsync();
                         
                         if (term.ccpChildLabels != null)
                         {
@@ -1309,6 +1207,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                 }
                             }
                         }
+
+                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
                         
                         Console.WriteLine("Writing name of child term : " + term.ccpChildName);
                         termStore.CommitAll();

@@ -25,18 +25,9 @@ password - password to be used for authenticaiton
             - GrandChildren of a grandChild
               - GrandChild of Grandchildren
 
-### Updating is currently deprecated (16.01.2020 - commit "minimizing memory usage")
 ## when updating terms
-- The "Term (aka ParentTerm)" can only be updated, when using the `POST /api/termset` endpoint. Remember to provide the termId when updating a Term. In essense, this means that the endpoint does not currently support updating of "Childterms" after creation.
-- You have to provide termCustomProperties and termLocalCustomProperties in the payload when updating a Term, otherwise the Term will not be updated.
-    - an empty dict works fine.
-
-## when updating child terms
-- Childterms also need the cpChildLocalCustomProperties and cpChildCustomProperties to be updated.
-- Remember to also provide the cpChildId when updating a childTerm.
-
-## when updating children of a child term
-- The above conditions are also true. the syntax now has the prefix "ccp", i.e. ccpChildName. 
+- Updating terms support deprecation now
+- Updating of labels need to be verified
 
 ### Functional endpoints
 
