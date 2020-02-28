@@ -601,25 +601,38 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     try
                     {
                         var termToUpdate = termSet.Terms.GetById(new Guid(term.termId));
-                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
                         await cc.ExecuteQueryAsync();
 
+                        termToUpdate.Deprecate(term.termIsDeprecated);
+
+                        if (termToUpdate.Labels != null)
+                        {
+                            foreach (var label in termToUpdate.Labels)
+                            {
+                                if (label.IsDefaultForLanguage == false)
+                                {
+                                    label.DeleteObject();
+                                }                                
+                            }
+                                                        
+                            cc.ExecuteQuery();
+                        }                    
+                        
                         if (term.termLabels != null)
                         {
+                            cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                            await cc.ExecuteQueryAsync();
+                            
                             foreach (var label in term.termLabels)
                             {
                                 if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
                                 {
                                     termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                    if (label.IsDefaultForLanguage == true)
-                                    {
-                                        termToUpdate.Name = label.Value;
-                                    }
                                 }
                             }
                         }
-
-                        termToUpdate.Deprecate(term.termIsDeprecated);
                                   
                         Console.WriteLine("---------------------------------------------------------");
                         Console.WriteLine("Writing name of parent term : " + term.termName);
@@ -629,43 +642,76 @@ namespace SP_Taxonomy_client_test.Infrastructure
                         {
                             var childToUpdate = termToUpdate.Terms.GetById(new Guid(child.childId));
                             
-                            cc.Load(childToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                            cc.Load(childToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
                             await cc.ExecuteQueryAsync();
+
+                            childToUpdate.Deprecate(child.childIsDeprecated);
+
+                            if (childToUpdate.Labels != null)
+                            {
+                                foreach (var label in childToUpdate.Labels)
+                                {
+                                    if (label.IsDefaultForLanguage == false)
+                                    {
+                                        label.DeleteObject();
+                                    }                                
+                                }
+                                                            
+                                cc.ExecuteQuery();
+                            } 
 
                             if (child.childLabels != null)
                             {
+                                cc.Load(childToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                                await cc.ExecuteQueryAsync();
+                                
                                 foreach (var label in child.childLabels)
                                 {
-                                    if (!childToUpdate.Labels.Any(no => no.Value == label.Value))
+                                    if (!childToUpdate.Labels.Any(x => x.Value == label.Value))
                                     {
                                         childToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                        if (label.IsDefaultForLanguage == true)
-                                        {
-                                            childToUpdate.Name = label.Value;
-                                        }
                                     }
                                 }
+                                
                             }
-
-                            childToUpdate.Deprecate(child.childIsDeprecated);
 
                             foreach(var grandchild in child.childChildTerms)
                             {
                                 var grandChildToUpdate = childToUpdate.Terms.GetById(new Guid(grandchild.childChildId));
 
-                                cc.Load(grandChildToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                                cc.Load(grandChildToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
                                 await cc.ExecuteQueryAsync();
 
-                                if (grandchild.childChildLabels != null)
-                                {
-                                    foreach (var label in grandchild.childChildLabels) 
-                                    {
-                                        grandChildToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                    }
-                                }
-
                                 grandChildToUpdate.Deprecate(grandchild.childChildIsDeprecated);
-                          
+
+                                if (grandChildToUpdate.Labels != null)
+                                {
+                                    foreach (var label in grandChildToUpdate.Labels)
+                                    {
+                                        if (label.IsDefaultForLanguage == false)
+                                        {
+                                            label.DeleteObject();
+                                        }                                
+                                    }
+                                                                
+                                    cc.ExecuteQuery();
+                                } 
+
+                                if (grandchild.childChildLabels != null)
+                                {
+                                    cc.Load(grandChildToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                                    await cc.ExecuteQueryAsync();
+                                    
+                                    foreach (var label in grandchild.childChildLabels)
+                                    {
+                                        if (!grandChildToUpdate.Labels.Any(x => x.Value == label.Value))
+                                        {
+                                            grandChildToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                        }
+                                    }
+                                    
+                                }
+
                                 Console.WriteLine("Writing name of grandchild term : " + grandchild.childChildName);
                             }
 
@@ -767,26 +813,38 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     {
                         var termToUpdate = parentTerm.Terms.GetById(new Guid(term.cpChildId));
                         
-                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
                         await cc.ExecuteQueryAsync();
+
+                        termToUpdate.Deprecate(term.cpChildIsDeprecated);
+
+                        if (termToUpdate.Labels != null)
+                        {
+                            foreach (var label in termToUpdate.Labels)
+                            {
+                                if (label.IsDefaultForLanguage == false)
+                                {
+                                    label.DeleteObject();
+                                }                                
+                            }
+                                                        
+                            cc.ExecuteQuery();
+                        }                    
                         
                         if (term.cpChildLabels != null)
                         {
+                            cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                            await cc.ExecuteQueryAsync();
+                            
                             foreach (var label in term.cpChildLabels)
                             {
                                 if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
                                 {
                                     termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                    if (label.IsDefaultForLanguage == true)
-                                    {
-                                        termToUpdate.Name = label.Value;
-                                    }
                                 }
                             }
                         }
 
-                        termToUpdate.Deprecate(term.cpChildIsDeprecated);
-                        
                         Console.WriteLine("Writing name of child term : " + term.cpChildName);
                         termStore.CommitAll();
                         cc.ExecuteQuery();
@@ -876,25 +934,37 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     {
                         var termToUpdate = childTerm.Terms.GetById(new Guid(term.ccpChildId));                           
                         
-                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
                         await cc.ExecuteQueryAsync();
+
+                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
+
+                        if (termToUpdate.Labels != null)
+                        {
+                            foreach (var label in termToUpdate.Labels)
+                            {
+                                if (label.IsDefaultForLanguage == false)
+                                {
+                                    label.DeleteObject();
+                                }                                
+                            }
+                                                        
+                            cc.ExecuteQuery();
+                        }                    
                         
                         if (term.ccpChildLabels != null)
                         {
+                            cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                            await cc.ExecuteQueryAsync();
+                            
                             foreach (var label in term.ccpChildLabels)
                             {
                                 if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
                                 {
                                     termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                    if (label.IsDefaultForLanguage == true)
-                                    {
-                                        termToUpdate.Name = label.Value;
-                                    }
                                 }
                             }
                         }
-                        
-                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
 
                         Console.WriteLine("Writing name of child term : " + term.ccpChildName);
                         termStore.CommitAll();
@@ -984,26 +1054,38 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     {
                         var termToUpdate = childTerm.Terms.GetById(new Guid(term.ccpChildId));                           
                         
-                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
                         await cc.ExecuteQueryAsync();
+
+                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
+
+                        if (termToUpdate.Labels != null)
+                        {
+                            foreach (var label in termToUpdate.Labels)
+                            {
+                                if (label.IsDefaultForLanguage == false)
+                                {
+                                    label.DeleteObject();
+                                }                                
+                            }
+                                                        
+                            cc.ExecuteQuery();
+                        }                    
                         
                         if (term.ccpChildLabels != null)
                         {
+                            cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                            await cc.ExecuteQueryAsync();
+                            
                             foreach (var label in term.ccpChildLabels)
                             {
                                 if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
                                 {
                                     termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                    if (label.IsDefaultForLanguage == true)
-                                    {
-                                        termToUpdate.Name = label.Value;
-                                    }
                                 }
                             }
                         }
 
-                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
-                        
                         Console.WriteLine("Writing name of child term : " + term.ccpChildName);
                         termStore.CommitAll();
                         cc.ExecuteQuery();
@@ -1087,26 +1169,38 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     {
                         var termToUpdate = childTerm.Terms.GetById(new Guid(term.ccpChildId));                           
                         
-                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
                         await cc.ExecuteQueryAsync();
+
+                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
+
+                        if (termToUpdate.Labels != null)
+                        {
+                            foreach (var label in termToUpdate.Labels)
+                            {
+                                if (label.IsDefaultForLanguage == false)
+                                {
+                                    label.DeleteObject();
+                                }                                
+                            }
+                                                        
+                            cc.ExecuteQuery();
+                        }                    
                         
                         if (term.ccpChildLabels != null)
                         {
+                            cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                            await cc.ExecuteQueryAsync();
+                            
                             foreach (var label in term.ccpChildLabels)
                             {
                                 if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
                                 {
                                     termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                    if (label.IsDefaultForLanguage == true)
-                                    {
-                                        termToUpdate.Name = label.Value;
-                                    }
                                 }
                             }
                         }
 
-                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
-                        
                         Console.WriteLine("Writing name of child term : " + term.ccpChildName);
                         termStore.CommitAll();
                         cc.ExecuteQuery();
@@ -1190,26 +1284,38 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     {
                         var termToUpdate = childTerm.Terms.GetById(new Guid(term.ccpChildId));                           
                         
-                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value), t => t.IsDeprecated);
+                        cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
                         await cc.ExecuteQueryAsync();
+
+                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
+
+                        if (termToUpdate.Labels != null)
+                        {
+                            foreach (var label in termToUpdate.Labels)
+                            {
+                                if (label.IsDefaultForLanguage == false)
+                                {
+                                    label.DeleteObject();
+                                }                                
+                            }
+                                                        
+                            cc.ExecuteQuery();
+                        }                    
                         
                         if (term.ccpChildLabels != null)
                         {
+                            cc.Load(termToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                            await cc.ExecuteQueryAsync();
+                            
                             foreach (var label in term.ccpChildLabels)
                             {
                                 if (!termToUpdate.Labels.Any(x => x.Value == label.Value))
                                 {
                                     termToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                    if (label.IsDefaultForLanguage == true)
-                                    {
-                                        termToUpdate.Name = label.Value;
-                                    }
                                 }
                             }
                         }
 
-                        termToUpdate.Deprecate(term.ccpChildIsDeprecated);
-                        
                         Console.WriteLine("Writing name of child term : " + term.ccpChildName);
                         termStore.CommitAll();
                         cc.ExecuteQuery();

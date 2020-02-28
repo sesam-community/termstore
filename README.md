@@ -26,9 +26,9 @@ password - password to be used for authenticaiton
               - GrandChild of Grandchildren
 
 ## when updating terms
-- Updating terms support deprecation now
-- Updating of labels is supported now.
-  - Updating of labels can only write new labels, you cannot delete old labels. 
+- Updating deprecation status is supported
+- Updating of labels is supported
+- Changing of default label is supported
 
 ### Functional endpoints
 
