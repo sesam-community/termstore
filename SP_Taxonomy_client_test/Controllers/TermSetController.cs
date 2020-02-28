@@ -29,11 +29,18 @@ namespace SP_Taxonomy_client_test.Controllers
         // GET api/termset
         [HttpGet]
         [Produces("application/json")]
-        public async Task<ActionResult<IEnumerable<TermModel>>> GetTerms()
+        public async Task<ActionResult<IEnumerable<TermModel>>> GetTerms([FromQuery(Name = "termset")] string _termset)
         {
-            return await this._spTermsService.GetAllTerms();
+            return await this._spTermsService.GetAllTerms(_termset);
         }
 
+        // GET api/termset d
+        [HttpGet("terms")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetAllTerms([FromQuery(Name = "termstore")] string _termstore, [FromQuery(Name = "termgroup")] string _termgroup, [FromQuery(Name = "termset")] string _termset)
+        {
+            return await this._spTermsService.AllTerms(_termstore, _termgroup, _termset);
+        }
 
         [HttpPost("children")]
         [Produces("application/json")]
@@ -58,6 +65,30 @@ namespace SP_Taxonomy_client_test.Controllers
         public async Task<ActionResult<IEnumerable<TermModel>>> PostTerms([FromBody] TermModel[] termList) 
         {
             return await this._spTermsService.CreateFromList(termList);
+        }
+
+        [HttpPost("child/child/children")]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public async Task<ActionResult<IEnumerable<childFromChildrenModel>>> PostChildChildChildrenTerms([FromBody] childFromChildrenModel[] termList) 
+        {
+            return await this._spTermsService.CreateFromChildChildList(termList);
+        }
+
+        [HttpPost("child/child/grandchild")]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public async Task<ActionResult<IEnumerable<grandchildFromChildrenModel>>> PostGrandChildTerms([FromBody] grandchildFromChildrenModel[] termList) 
+        {
+            return await this._spTermsService.CreateFromGrandchildList(termList);
+        }
+
+        [HttpPost("child/grandchildren/grandchild")]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        public async Task<ActionResult<IEnumerable<grandchildFromChildChildModel>>> PostGrandChildChildTerms([FromBody] grandchildFromChildChildModel[] termList) 
+        {
+            return await this._spTermsService.CreateFromGrandchildChildList(termList);
         }
     }
 }

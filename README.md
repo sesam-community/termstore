@@ -21,29 +21,36 @@ password - password to be used for authenticaiton
     - Term
       - Childterm
         - Children of a Childterm
+          - Grandchildren of a Childterm
+            - GrandChildren of a grandChild
+              - GrandChild of Grandchildren
 
 ## when updating terms
-- The "Term (aka ParentTerm)" can only be updated, when using the `POST /api/termset` endpoint. Remember to provide the termId when updating a Term. In essense, this means that the endpoint does not currently support updating of "Childterms" after creation.
-- You have to provide termCustomProperties and termLocalCustomProperties in the payload when updating a Term, otherwise the Term will not be updated.
-    - an empty dict works fine.
-
-## when updating child terms
-- Childterms also need the cpChildLocalCustomProperties and cpChildCustomProperties to be updated.
-- Remember to also provide the cpChildId when updating a childTerm.
-
-## when updating children of a child term
-- The above conditions are also true. the syntax now has the prefix "ccp", i.e. ccpChildName. 
+- Updating deprecation status is supported
+- Updating of labels is supported
+- Changing of default label is supported
 
 ### Functional endpoints
 
 `GET /api/termset` - return JSON array with all properties from default termstore  
 `POST /api/termset` - takes JSON array with properties to be created as a new term or to update an existing term (created childterms on this route cannot be updated or added to the parentTerm after creation).
+  - If the parentTerm does not exist, the request will complete by creating the parentTerm.
+  -Afterwards grap the termId of the parentTerm, and set that in the payload you send, now you'll create your childterms. 
 
-To exclusively create or update child terms use the below route :
+To create or update child terms use the below route :
 `POST /api/termset/children` - takes JSON array with properties to be created as a new childterm or to update an existing childterm.
 
-To exclusively create or update childs of a child term use the below route :
+To create or update childs of a child term use the below route :
 `POST /api/termset/child/children` - takes JSON array with properties to be created as a new child of a childterm or to update an existing child of a childterm.
+
+To create or update childs of a child term use the below route :
+`POST /api/termset/child/child/children` - takes JSON array with properties to be created as a new child of a childterm or to update an existing child of a childterm.
+
+To create or update childs of a grandchild term use the below route :
+`POST /api/termset/child/child/grandchild` - takes JSON array with properties to be created as a new grandchild of a childterm or to update an existing grandchild of a child term.
+
+To create or update grandchildren of a grandchild term use the below route :
+`POST /api/termset/child/grandchildren/grandchild` - takes JSON array with properties to be created as a new grandchild of a grandchild term or to update an existing grandchild of a grandchild term.
 
 Entity shape to POST terms from `POST /api/termset`:
 
