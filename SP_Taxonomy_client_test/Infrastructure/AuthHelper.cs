@@ -31,6 +31,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                 }
 
                 e.WebRequestExecutor.WebRequest.Headers.Add("Authorization", "Bearer " + tokenCache[url].access_token);
+                e.WebRequestExecutor.WebRequest.UserAgent = "ISV|Villegder|GovernanceCheck/1.0";
             };
 
             return cc;

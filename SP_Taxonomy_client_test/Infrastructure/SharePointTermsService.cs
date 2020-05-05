@@ -831,6 +831,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     if (term.cpChildId == null) {
                         continue;
                     }
+                    int i = 0;
                     do {
                         try
                         {
@@ -878,7 +879,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             Console.WriteLine("Failing with error : " + e.Message);
                         }
 
-                    } while (true);
+                        i++;
+                    } while (i < 4);
                 }
                 else {
                     try
@@ -955,6 +957,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     if (term.ccpChildId == null) {
                         continue;
                     }
+                    int i = 0;
                     do {
                         try
                         {
@@ -1002,7 +1005,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             Console.WriteLine("Failing with error : " + e.Message);
                         }
 
-                    } while (true);
+                        i++;
+                    } while (i < 4);
                 }
                 else {
                     try
@@ -1079,6 +1083,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                         continue;
                     }
                     
+                    int i = 0;
                     do {
                         try
                         {
@@ -1126,7 +1131,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             Console.WriteLine("Failing with error : " + e.Message);
                         }
 
-                    } while (true);
+                        i++;
+                    } while (i < 4);
                 }
                 else {
                     try
@@ -1197,6 +1203,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     if (term.ccpChildId == null) {
                         continue;
                     }
+
+                    int i = 0;
                     do {
                         try
                         {
@@ -1243,8 +1251,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                         catch (Exception e) {
                             Console.WriteLine("Failing with error : " + e.Message);
                         }
-                    
-                    } while (true);
+
+                        i++;
+                    } while (i < 4);
                 }
                 else {
                     try
@@ -1315,6 +1324,8 @@ namespace SP_Taxonomy_client_test.Infrastructure
                     if (term.ccpChildId == null) {
                         continue;
                     }
+
+                    int i = 0;
                     do {
                         try
                         {
@@ -1361,8 +1372,9 @@ namespace SP_Taxonomy_client_test.Infrastructure
                         catch (Exception e) {
                             Console.WriteLine("Failing with error : " + e.Message);
                         }
-                    
-                    } while (true);
+
+                        i++;
+                    } while (i < 4);
                 }
                 else {
                     try
