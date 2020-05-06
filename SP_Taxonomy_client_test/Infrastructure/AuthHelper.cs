@@ -31,7 +31,6 @@ namespace SP_Taxonomy_client_test.Infrastructure
                 }
 
                 e.WebRequestExecutor.WebRequest.Headers.Add("Authorization", "Bearer " + tokenCache[url].access_token);
-                e.WebRequestExecutor.WebRequest.UserAgent = "ISV|Villegder|GovernanceCheck/1.0";
             };
 
             return cc;
@@ -48,6 +47,11 @@ namespace SP_Taxonomy_client_test.Infrastructure
             {
                 AuthenticationMode = ClientAuthenticationMode.Default,
                 Credentials = new SharePointOnlineCredentials(username, secure)
+            };
+            
+            cc.ExecutingWebRequest += delegate (object sender, WebRequestEventArgs e)
+            {
+                e.WebRequestExecutor.WebRequest.UserAgent = "NONISV|Villegder|GovernanceCheck/1.0";
             };
 
             return cc;

@@ -582,9 +582,10 @@ namespace SP_Taxonomy_client_test.Infrastructure
             {
                 TermSet termSet = termStore.GetTermSet(new Guid(term.termSetId));
                 
-                cc.Load(termSet, set => set.Name, set => set.Terms.Include(term => term.Name));
+                cc.Load(termSet, set => set.Name, set => set.Terms.Include(term => term.Name,
+                term => term.Terms.Include(t => t.Name, t => t.Id, t => t.Terms.Include(ct => ct.Name, ct => ct.Id))));
                 await cc.ExecuteQueryAsync();
-
+                
                 byte[] bytes = Encoding.Default.GetBytes(term.termName);
                 term.termName = Encoding.UTF8.GetString(bytes).Replace('&', (char)0xff06).Replace('"', (char)0xff02);
                 
@@ -635,7 +636,7 @@ namespace SP_Taxonomy_client_test.Infrastructure
                         var count = 1;
 
                         foreach(var child in term.termChildTerms)
-                        {
+                        {       
                             if (child.childId == null) {
                             
                                 var childToCreate = termToUpdate.CreateTerm(child.childName, child.childLcid, Guid.NewGuid());
@@ -679,53 +680,19 @@ namespace SP_Taxonomy_client_test.Infrastructure
                             }
                             
                             else {
-                                // Er her ift. oppgaven om update...   
-                                var childToUpdate = termSet.Terms.GetById(new Guid(child.childId));
-                                cc.Load(childToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
-                                await cc.ExecuteQueryAsync();
-
-                                childToUpdate.Deprecate(child.childIsDeprecated);
-
-                                if (childToUpdate.Labels != null)
+                                foreach (var termFromTermstore in termSet.Terms)
                                 {
-                                    foreach (var label in childToUpdate.Labels)
-                                    {
-                                        if (label.IsDefaultForLanguage == false)
-                                        {
-                                            label.DeleteObject();
-                                        }                                
-                                    }
-                                                                
-                                    cc.ExecuteQuery();
-                                }
-                                
-                                if (child.childLabels != null)
-                                {
-                                    cc.Load(childToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
-                                    await cc.ExecuteQueryAsync();
-                                    
-                                    foreach (var label in child.childLabels)
-                                    {
-                                        if (!childToUpdate.Labels.Any(x => x.Value == label.Value))
-                                        {
-                                            childToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
-                                        }
-                                    }
-                                }
-
-                                foreach(var grandchild in child.childChildTerms)
-                                {
-                                    if (grandchild.childChildId != null)
-                                    {  
-                                        var grandChildToUpdate = termSet.Terms.GetById(new Guid(grandchild.childChildId));
-                                        cc.Load(grandChildToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                                    if (term.termName.Equals(termFromTermstore.Name)){
+                                                                        
+                                        var childToUpdate = termFromTermstore.Terms.GetById(new Guid(child.childId));
+                                        cc.Load(childToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
                                         await cc.ExecuteQueryAsync();
 
-                                        grandChildToUpdate.Deprecate(grandchild.childChildIsDeprecated);
+                                        childToUpdate.Deprecate(child.childIsDeprecated);
 
-                                        if (grandChildToUpdate.Labels != null)
+                                        if (childToUpdate.Labels != null)
                                         {
-                                            foreach (var label in grandChildToUpdate.Labels)
+                                            foreach (var label in childToUpdate.Labels)
                                             {
                                                 if (label.IsDefaultForLanguage == false)
                                                 {
@@ -736,30 +703,89 @@ namespace SP_Taxonomy_client_test.Infrastructure
                                             cc.ExecuteQuery();
                                         }
                                         
-                                        if (grandchild.childChildLabels != null)
+                                        if (child.childLabels != null)
                                         {
-                                            cc.Load(grandChildToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                                            cc.Load(childToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
                                             await cc.ExecuteQueryAsync();
                                             
-                                            foreach (var label in grandchild.childChildLabels)
+                                            foreach (var label in child.childLabels)
                                             {
-                                                if (!grandChildToUpdate.Labels.Any(x => x.Value == label.Value))
+                                                if (!childToUpdate.Labels.Any(x => x.Value == label.Value))
                                                 {
-                                                    grandChildToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                                    childToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
                                                 }
                                             }
                                         }
-                                
-                                        Console.WriteLine("Writing name of grandchild term : " + grandchild.childChildName);
-                                    }
-                                    
-                                }
-                                
-                                Console.WriteLine("Writing iteration count to check where number of children crash termstore:" + count);
-                                Console.WriteLine("Writing name of child term : " + child.childName);
-                                count++;
 
-                            }
+                                        foreach(var grandchild in child.childChildTerms)
+                                        {
+                                            foreach (var childTermFromTermstore in termFromTermstore.Terms)
+                                            {
+                                                if (child.childName.Equals(childTermFromTermstore.Name)){
+
+                                                    if (grandchild.childChildId != null)
+                                                    {  
+                                                
+                                                        var grandChildToUpdate = childTermFromTermstore.Terms.GetById(new Guid(grandchild.childChildId));
+                                                        cc.Load(grandChildToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                                                        await cc.ExecuteQueryAsync();
+
+                                                        grandChildToUpdate.Deprecate(grandchild.childChildIsDeprecated);
+
+                                                        if (grandChildToUpdate.Labels != null)
+                                                        {
+                                                            foreach (var label in grandChildToUpdate.Labels)
+                                                            {
+                                                                if (label.IsDefaultForLanguage == false)
+                                                                {
+                                                                    label.DeleteObject();
+                                                                }                                
+                                                            }
+                                                                                        
+                                                            cc.ExecuteQuery();
+                                                        }
+                                                        
+                                                        if (grandchild.childChildLabels != null)
+                                                        {
+                                                            cc.Load(grandChildToUpdate, t => t.Name, t => t.Labels.Include(lName => lName.Value, lIsDefault => lIsDefault.IsDefaultForLanguage), t => t.IsDeprecated);
+                                                            await cc.ExecuteQueryAsync();
+                                                            
+                                                            foreach (var label in grandchild.childChildLabels)
+                                                            {
+                                                                if (!grandChildToUpdate.Labels.Any(x => x.Value == label.Value))
+                                                                {
+                                                                    grandChildToUpdate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                                                }
+                                                            }
+                                                        }
+                                                
+                                                        Console.WriteLine("Writing name of grandchild term : " + grandchild.childChildName);
+                                                    }
+                                                    else{
+
+                                                        var grandChildToCreate = childToUpdate.CreateTerm(grandchild.childChildName, grandchild.childChildLcid, Guid.NewGuid());
+
+                                                        if (grandchild.childChildLabels != null)
+                                                        {
+                                                            foreach (var label in grandchild.childChildLabels) 
+                                                            {
+                                                                grandChildToCreate.CreateLabel(label.Value, label.Language, label.IsDefaultForLanguage);
+                                                            }
+                                                        }
+                                                
+                                                        Console.WriteLine("Writing name of grandchild term : " + grandchild.childChildName);
+                                                    }
+                                                }
+                                            }    
+                                        }
+                                        
+                                        Console.WriteLine("Writing iteration count to check where number of children crash termstore:" + count);
+                                        Console.WriteLine("Writing name of child term : " + child.childName);
+                                        count++;
+
+                                    }
+                                }
+                            }       
                         }    
                     
                         termStore.CommitAll();
