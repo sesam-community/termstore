@@ -33,7 +33,7 @@ password - password to be used for authenticaiton
 ### Functional endpoints
 
 `GET /api/termset` - return JSON array with all properties from default termstore  
-`POST /api/termset` - takes JSON array with properties to be created as a new term or to update an existing term (created childterms on this route cannot be updated or added to the parentTerm after creation).
+`POST /api/termset` - takes JSON array with properties to be created as a new term or to update an existing term.
   - If the parentTerm does not exist, the request will complete by creating the parentTerm.
   -Afterwards grap the termId of the parentTerm, and set that in the payload you send, now you'll create your childterms. 
 
